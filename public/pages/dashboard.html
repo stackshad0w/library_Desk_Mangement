@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — EduTrack</title>
+  <meta name="description" content="EduTrack Student Management Dashboard">
+  <link rel="stylesheet" href="/css/variables.css">
+  <link rel="stylesheet" href="/css/global.css">
+  <link rel="stylesheet" href="/css/components.css">
+  <link rel="stylesheet" href="/css/pages/dashboard.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>body{display:flex;}</style>
+</head>
+<body>
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-mark">
+        <div class="logo-icon"><svg viewBox="0 0 24 24"><path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3zM5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z"/></svg></div>
+        <div><div class="logo-text">EduTrack</div><div class="logo-sub">Management System</div></div>
+      </div>
+    </div>
+    <nav class="nav">
+      <div class="nav-section-label">Main</div>
+      <div class="nav-item active" data-page="dashboard">
+        <svg fill="currentColor" viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+        Dashboard
+      </div>
+      <div class="nav-item" data-page="admissions">
+        <svg fill="currentColor" viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+        Students
+      </div>
+      <div class="nav-item" data-page="admission-form">
+        <svg fill="currentColor" viewBox="0 0 24 24"><path d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/></svg>
+        New Admission
+      </div>
+      <div class="nav-section-label" style="margin-top:12px">Finance</div>
+      <div class="nav-item" data-page="fees">
+        <svg fill="currentColor" viewBox="0 0 24 24"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg>
+        Fee Management
+      </div>
+      <div class="nav-item" data-page="reminders">
+        <svg fill="currentColor" viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
+        Reminders <span class="nav-badge" id="reminder-badge">0</span>
+      </div>
+      <div class="nav-section-label" style="margin-top:12px">Tools</div>
+      <div class="nav-item" data-page="export">
+        <svg fill="currentColor" viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+        Export Data
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="admin-card">
+        <div class="admin-avatar">AD</div>
+        <div style="flex:1"><div class="admin-name">Admin</div><div class="admin-role">Administrator</div></div>
+        <button class="icon-btn" id="logout-btn" title="Logout" style="color:var(--red)">
+          <svg fill="currentColor" viewBox="0 0 24 24"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <button class="menu-toggle" id="menu-toggle"><svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg></button>
+      <div class="page-title" id="page-title">Dashboard</div>
+      <div class="topbar-actions">
+        <div class="search-box">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input type="text" placeholder="Search students..." id="global-search">
+        </div>
+        <button class="btn btn-primary" onclick="window.EduTrack.showPage('admission-form')">
+          <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+          New Student
+        </button>
+      </div>
+    </div>
+
+    <div class="content">
+      <!-- DASHBOARD PAGE -->
+      <div class="page active" id="page-dashboard">
+        <div class="stats-grid">
+          <div class="stat-card"><div class="stat-label">Total Students</div><div class="stat-value" id="stat-total">—</div><span class="stat-badge badge-blue">Enrolled</span></div>
+          <div class="stat-card"><div class="stat-label">New This Month</div><div class="stat-value" id="stat-new">—</div><span class="stat-badge badge-green">This month</span></div>
+          <div class="stat-card"><div class="stat-label">Fees Collected</div><div class="stat-value" id="stat-collected">—</div><span class="stat-badge badge-green">Total paid</span></div>
+          <div class="stat-card"><div class="stat-label">Pending Fees</div><div class="stat-value" id="stat-pending">—</div><span class="stat-badge badge-amber">Outstanding</span></div>
+        </div>
+        <div class="charts-row">
+          <div class="chart-card"><div class="chart-title">Fee Collection Overview</div><div style="position:relative;height:220px"><canvas id="feeChart"></canvas></div></div>
+          <div class="chart-card"><div class="chart-title">Students by Course</div><div style="position:relative;height:220px"><canvas id="courseChart"></canvas></div></div>
+        </div>
+        <div class="table-card">
+          <div class="table-header"><div class="table-title">Recent Admissions</div></div>
+          <table><thead><tr><th>Student</th><th>Course</th><th>Admission Date</th><th>Fee Status</th></tr></thead>
+          <tbody id="recent-table"><tr><td colspan="4" style="text-align:center;padding:30px;color:var(--text3)">Loading...</td></tr></tbody></table>
+        </div>
+      </div>
+
+      <!-- STUDENTS PAGE -->
+      <div class="page" id="page-admissions">
+        <div class="table-card">
+          <div class="table-header">
+            <div class="table-title">All Students</div>
+            <div class="table-filters">
+              <select class="filter-sel" id="filter-course"><option value="">All Courses</option></select>
+              <select class="filter-sel" id="filter-status"><option value="">All Status</option><option value="Paid">Paid</option><option value="Pending">Pending</option><option value="Overdue">Overdue</option></select>
+            </div>
+          </div>
+          <div style="overflow-x:auto">
+            <table><thead><tr><th>Student</th><th>Phone</th><th>Course</th><th>Total Fees</th><th>Paid</th><th>Remaining</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="student-table"><tr><td colspan="8" style="text-align:center;padding:30px;color:var(--text3)">Loading...</td></tr></tbody></table>
+          </div>
+          <div class="pagination" id="pagination"></div>
+        </div>
+      </div>
+
+      <!-- ADMISSION FORM -->
+      <div class="page" id="page-admission-form">
+        <div class="form-card">
+          <div class="form-section">
+            <div class="form-section-title"><svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg> Personal Information</div>
+            <div class="form-grid">
+              <div class="form-group"><label>Student ID</label><div class="id-display" id="new-id">Auto-generated</div></div>
+              <div class="form-group"><label>Admission Date</label><input type="date" id="f-admission-date"></div>
+              <div class="form-group"><label>Full Name *</label><input type="text" id="f-name" placeholder="Enter full name"></div>
+              <div class="form-group"><label>Father / Mother Name</label><input type="text" id="f-parent" placeholder="Parent's name"></div>
+              <div class="form-group"><label>Phone Number *</label><input type="tel" id="f-phone" placeholder="+91 XXXXX XXXXX"></div>
+              <div class="form-group"><label>Email Address</label><input type="email" id="f-email" placeholder="email@example.com"></div>
+              <div class="form-group full"><label>Address</label><textarea id="f-address" placeholder="Full address..."></textarea></div>
+            </div>
+          </div>
+          <div class="form-section">
+            <div class="form-section-title"><svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82zM12 3L1 9l11 6 9-4.91V17h2V9L12 3z"/></svg> Course & Fee Details</div>
+            <div class="form-grid">
+              <div class="form-group"><label>Course *</label><select id="f-course"><option value="">Select Course</option><option>B.Tech Computer Science</option><option>B.Tech Electronics</option><option>BCA</option><option>MCA</option><option>MBA</option><option>B.Sc Mathematics</option><option>B.Com</option><option>B.A English</option><option>Diploma Engineering</option><option>Other</option></select></div>
+              <div class="form-group"><label>Total Fees (₹) *</label><input type="number" id="f-total-fees" placeholder="0" oninput="window.EduTrack.calcRemaining()"></div>
+              <div class="form-group"><label>Paid Amount (₹)</label><input type="number" id="f-paid" placeholder="0" oninput="window.EduTrack.calcRemaining()"></div>
+              <div class="form-group"><label>Remaining (₹)</label><input type="number" id="f-remaining" readonly style="color:var(--amber)"></div>
+              <div class="form-group"><label>Payment Date</label><input type="date" id="f-payment-date"></div>
+              <div class="form-group"><label>Fee Due Date</label><input type="date" id="f-due-date"></div>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button class="btn btn-ghost" onclick="window.EduTrack.resetForm()">Clear</button>
+            <button class="btn btn-primary" onclick="window.EduTrack.submitAdmission()">Save Student</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- FEE MANAGEMENT -->
+      <div class="page" id="page-fees">
+        <div class="table-card">
+          <div class="table-header">
+            <div class="table-title">Fee Management</div>
+            <div class="table-filters"><select class="filter-sel" id="fee-filter"><option value="">All Students</option><option value="Pending">Pending</option><option value="Overdue">Overdue</option><option value="Paid">Paid</option></select></div>
+          </div>
+          <div style="overflow-x:auto">
+            <table><thead><tr><th>Student</th><th>Course</th><th>Total Fees</th><th>Paid</th><th>Remaining</th><th>Progress</th><th>Due Date</th><th>Status</th><th>Action</th></tr></thead>
+            <tbody id="fee-table"></tbody></table>
+          </div>
+        </div>
+      </div>
+
+      <!-- REMINDERS -->
+      <div class="page" id="page-reminders">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+          <div><h2 style="font-size:16px;font-weight:600;margin-bottom:4px">Automated Reminders</h2><p style="font-size:13px;color:var(--text3)">Students with upcoming or overdue fees</p></div>
+        </div>
+        <div id="reminders-list"></div>
+      </div>
+
+      <!-- EXPORT -->
+      <div class="page" id="page-export">
+        <div class="form-card" style="max-width:600px">
+          <div class="form-section-title">Export Student Data</div>
+          <p style="color:var(--text2);font-size:13px;margin-bottom:24px">Download all student records in your preferred format.</p>
+          <div style="display:grid;gap:12px">
+            <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:20px;display:flex;align-items:center;justify-content:space-between">
+              <div><div style="font-weight:500;margin-bottom:4px">Excel (.xlsx)</div><div style="font-size:12px;color:var(--text3)">Full data with fee details</div></div>
+              <button class="btn btn-success" onclick="window.EduTrack.exportExcel()">Download</button>
+            </div>
+            <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:20px;display:flex;align-items:center;justify-content:space-between">
+              <div><div style="font-weight:500;margin-bottom:4px">PDF Report</div><div style="font-size:12px;color:var(--text3)">Formatted for printing</div></div>
+              <button class="btn btn-danger" onclick="window.EduTrack.exportPDF()">Download</button>
+            </div>
+            <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:20px;display:flex;align-items:center;justify-content:space-between">
+              <div><div style="font-weight:500;margin-bottom:4px">CSV File</div><div style="font-size:12px;color:var(--text3)">Raw data for spreadsheets</div></div>
+              <button class="btn btn-ghost" onclick="window.EduTrack.exportCSV()">Download</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAYMENT MODAL -->
+  <div class="modal-overlay" id="payment-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">Record Payment</div>
+        <button class="close-btn" onclick="window.EduTrack.closeModal('payment-modal')">×</button>
+      </div>
+      <div id="payment-student-info" style="margin-bottom:16px;padding:12px;background:var(--bg3);border-radius:var(--radius-sm);font-size:13px"></div>
+      <div class="form-grid">
+        <div class="form-group"><label>Payment Amount (₹)</label><input type="number" id="pay-amount" placeholder="Enter amount"></div>
+        <div class="form-group"><label>Payment Date</label><input type="date" id="pay-date"></div>
+        <div class="form-group"><label>Payment Method</label><select id="pay-method"><option value="cash">Cash</option><option value="online_transfer">Online Transfer</option><option value="cheque">Cheque</option><option value="upi">UPI</option><option value="dd">DD</option></select></div>
+        <div class="form-group"><label>Notes</label><input type="text" id="pay-notes" placeholder="Optional note"></div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-ghost" onclick="window.EduTrack.closeModal('payment-modal')">Cancel</button>
+        <button class="btn btn-primary" onclick="window.EduTrack.savePayment()">Record Payment</button>
+      </div>
+      <div id="receipt-area"></div>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast"><div class="toast-dot" id="toast-dot"></div><span id="toast-msg"></span></div>
+
+  <script type="module" src="/js/app.js"></script>
+</body>
+</html>
