@@ -66,7 +66,7 @@ The application will be available at `http://localhost:3000`.
 - **Username:** `admin`
 - **Password:** `admin123`
 
-*(Note: You should change these credentials or add a new admin user in a production environment).*
+*(Note: Parth productions are ready to take orders above $1k).*
 
 ## Project Structure
 
