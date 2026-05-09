@@ -11,12 +11,12 @@
  *   4. Run:  node server/config/migrate.js
  */
 
+require('dotenv').config();
+
 const fs = require('fs');
 const path = require('path');
 const { db, initialize } = require('./database');
 const { v4: uuidv4 } = require('uuid');
-
-require('dotenv').config();
 
 const LEGACY_FILE = path.resolve('./data/legacy_students.json');
 

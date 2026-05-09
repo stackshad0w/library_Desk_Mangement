@@ -1,6 +1,7 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { db } = require('../config/database');
+const { getJwtSecret } = require('../config/runtime');
 const { generateId } = require('../utils/helpers');
 const logger = require('../utils/logger');
 
@@ -95,11 +96,11 @@ function login(req, res) {
     .run(user.id);
 
   // Generate tokens
-  const token = jwt.sign({ userId: user.id, role: user.role }, process.env.JWT_SECRET, {
+  const token = jwt.sign({ userId: user.id, role: user.role }, getJwtSecret(), {
     expiresIn: process.env.JWT_EXPIRES_IN || '24h',
   });
 
-  const refreshToken = jwt.sign({ userId: user.id, type: 'refresh' }, process.env.JWT_SECRET, {
+  const refreshToken = jwt.sign({ userId: user.id, type: 'refresh' }, getJwtSecret(), {
     expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
   });
 
@@ -145,7 +146,7 @@ function refreshToken(req, res) {
   }
 
   try {
-    const decoded = jwt.verify(rToken, process.env.JWT_SECRET);
+    const decoded = jwt.verify(rToken, getJwtSecret());
     if (decoded.type !== 'refresh') {
       return res.status(400).json({ message: 'Invalid refresh token' });
     }
@@ -157,7 +158,7 @@ function refreshToken(req, res) {
       return res.status(401).json({ message: 'User not found or inactive' });
     }
 
-    const newToken = jwt.sign({ userId: user.id, role: user.role }, process.env.JWT_SECRET, {
+    const newToken = jwt.sign({ userId: user.id, role: user.role }, getJwtSecret(), {
       expiresIn: process.env.JWT_EXPIRES_IN || '24h',
     });
 

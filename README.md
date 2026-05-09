@@ -19,13 +19,13 @@ EduTrack is a modern, full-stack student management application designed to hand
 
 - **Frontend**: Vanilla HTML/CSS/JS (ES6 Modules), CSS Variables, Chart.js, jsPDF, SheetJS.
 - **Backend**: Node.js, Express.js.
-- **Database**: SQLite (via `better-sqlite3`).
+- **Database**: SQLite (via Node's built-in `node:sqlite` module).
 - **Security**: `bcryptjs` (password hashing), `jsonwebtoken` (session auth), `helmet` (HTTP headers), `express-validator` (input sanitization), `express-rate-limit` (brute-force protection).
 
 ## Getting Started
 
 ### Prerequisites
-- Node.js (v18 or higher recommended)
+- Node.js (v22.13 or higher)
 - npm
 
 ### Installation
@@ -67,6 +67,14 @@ The application will be available at `http://localhost:3000`.
 - **Password:** `admin123`
 
 *(Note: Parth productions are ready to take orders above $1k).*
+
+### Vercel Deployment
+
+The app uses Node's built-in SQLite driver, so Vercel deployments do not need native SQLite package builds. On Vercel, the database and file logs default to temporary writable storage under `/tmp`; set `DB_PATH` and `LOG_DIR` only when deploying to an environment with persistent writable storage.
+
+Set these Vercel environment variables before production use:
+- `JWT_SECRET` for stable authentication tokens.
+- `ADMIN_PASSWORD` to replace the default bootstrap password.
 
 ## Project Structure
 

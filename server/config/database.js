@@ -1,21 +1,60 @@
-const Database = require('better-sqlite3');
-const path = require('path');
 const fs = require('fs');
+const path = require('path');
+const { randomUUID } = require('crypto');
+const { DatabaseSync } = require('node:sqlite');
+const bcrypt = require('bcryptjs');
+const { resolveWritablePath } = require('./runtime');
 
-const DB_PATH = process.env.DB_PATH || './data/edutrack.db';
-const dbDir = path.dirname(path.resolve(DB_PATH));
+const DB_PATH = process.env.DB_PATH === ':memory:'
+  ? ':memory:'
+  : resolveWritablePath(process.env.DB_PATH, './data/edutrack.db', 'edutrack.db');
+const dbDir = DB_PATH === ':memory:' ? null : path.dirname(DB_PATH);
 
-if (!fs.existsSync(dbDir)) {
+if (dbDir && !fs.existsSync(dbDir)) {
   fs.mkdirSync(dbDir, { recursive: true });
 }
 
-const db = new Database(path.resolve(DB_PATH));
+class AppDatabase {
+  constructor(dbPath) {
+    this.connection = new DatabaseSync(dbPath);
+  }
 
-// Enable WAL mode for better concurrent performance
+  prepare(sql) {
+    return this.connection.prepare(sql);
+  }
+
+  exec(sql) {
+    return this.connection.exec(sql);
+  }
+
+  pragma(sql) {
+    return this.exec(`PRAGMA ${sql}`);
+  }
+
+  transaction(fn) {
+    return (...args) => {
+      this.exec('BEGIN');
+      try {
+        const result = fn(...args);
+        this.exec('COMMIT');
+        return result;
+      } catch (err) {
+        this.exec('ROLLBACK');
+        throw err;
+      }
+    };
+  }
+}
+
+const db = new AppDatabase(DB_PATH);
+
+// Enable WAL mode for better concurrent performance.
 db.pragma('journal_mode = WAL');
 db.pragma('foreign_keys = ON');
 
-function initialize() {
+function initialize(options = {}) {
+  const { seedDefaultAdmin = true } = options;
+
   db.exec(`
     CREATE TABLE IF NOT EXISTS users (
       id TEXT PRIMARY KEY,
@@ -94,6 +133,36 @@ function initialize() {
     CREATE INDEX IF NOT EXISTS idx_sessions_token ON sessions(token);
     CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);
   `);
+
+  return seedDefaultAdmin ? ensureDefaultAdmin() : false;
 }
 
-module.exports = { db, initialize };
+function ensureDefaultAdmin() {
+  if (process.env.SEED_DEFAULT_ADMIN === 'false') {
+    return false;
+  }
+
+  const existing = db.prepare('SELECT id FROM users LIMIT 1').get();
+  if (existing) {
+    return false;
+  }
+
+  const rounds = parseInt(process.env.BCRYPT_ROUNDS, 10) || 10;
+  const username = process.env.ADMIN_USERNAME || 'admin';
+  const email = process.env.ADMIN_EMAIL || 'admin@edutrack.local';
+  const password = process.env.ADMIN_PASSWORD || 'admin123';
+  const passwordHash = bcrypt.hashSync(password, rounds);
+
+  db.prepare(`
+    INSERT INTO users (id, username, email, password_hash, role)
+    VALUES (?, ?, ?, ?, ?)
+  `).run(randomUUID(), username, email, passwordHash, 'admin');
+
+  if (!process.env.ADMIN_PASSWORD && process.env.NODE_ENV === 'production') {
+    console.warn('Default admin password is active; set ADMIN_PASSWORD in production.');
+  }
+
+  return true;
+}
+
+module.exports = { db, initialize, ensureDefaultAdmin };

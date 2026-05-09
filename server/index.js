@@ -55,10 +55,10 @@ app.use(morgan('short'));
 // Rate limiting
 app.use('/api/', generalLimiter);
 
-// Static files — serve the public directory
+// Static files - serve the public directory
 app.use(express.static(path.join(__dirname, '..', 'public')));
 
-// API Routes
+// API routes
 app.use('/api/auth', authRoutes);
 app.use('/api/students', studentRoutes);
 app.use('/api/payments', paymentRoutes);
@@ -84,9 +84,11 @@ app.get('/pages/:page', (req, res) => {
 // Global error handler
 app.use(errorHandler);
 
-app.listen(PORT, () => {
-  logger.info(`EduTrack server running on http://localhost:${PORT}`);
-  console.log(`\n🎓 EduTrack server running at http://localhost:${PORT}\n`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    logger.info(`EduTrack server running on http://localhost:${PORT}`);
+    console.log(`\nEduTrack server running at http://localhost:${PORT}\n`);
+  });
+}
 
 module.exports = app;

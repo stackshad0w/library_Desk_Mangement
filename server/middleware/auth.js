@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const { db } = require('../config/database');
+const { getJwtSecret } = require('../config/runtime');
 const logger = require('../utils/logger');
 
 /**
@@ -15,7 +16,7 @@ function authenticate(req, res, next) {
   const token = authHeader.split(' ')[1];
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, getJwtSecret());
 
     // Check if session exists and is not expired
     const session = db.prepare(
