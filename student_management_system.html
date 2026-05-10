@@ -1195,7 +1195,7 @@
               </select>
               <select class="filter-sel" id="filter-status" onchange="renderStudentTable()">
                 <option value="">All Status</option>
-                <option value="Paid">Paid</option>
+                <option value="Paid">Active</option>
                 <option value="Pending">Pending</option>
                 <option value="Overdue">Overdue</option>
                 <option value="Inactive">Inactive</option>
@@ -1209,9 +1209,8 @@
                   <th>Student</th>
                   <th>Phone</th>
                   <th>Course</th>
-                  <th>Total Fees</th>
-                  <th>Paid</th>
-                  <th>Remaining</th>
+                  <th>Subscription</th>
+                  <th>Balance</th>
                   <th>Status</th>
                   <th>Actions</th>
                 </tr>
@@ -1318,16 +1317,8 @@
                 </select>
               </div>
               <div class="form-group">
-                <label>Total Fees (₹) *</label>
-                <input type="number" id="f-total-fees" placeholder="0" oninput="calcRemaining()">
-              </div>
-              <div class="form-group">
-                <label>Paid Amount (₹)</label>
-                <input type="number" id="f-paid" placeholder="0" oninput="calcRemaining()">
-              </div>
-              <div class="form-group">
-                <label>Remaining Amount (₹)</label>
-                <input type="number" id="f-remaining" placeholder="0" readonly style="color:var(--amber)">
+                <label>Subscription Fee (₹) *</label>
+                <input type="number" id="f-total-fees" placeholder="0" readonly style="font-weight:600;color:var(--accent)">
               </div>
               <div class="form-group">
                 <label>Payment Date</label>
@@ -1356,7 +1347,7 @@
                 <option value="">All Students</option>
                 <option value="Pending">Pending</option>
                 <option value="Overdue">Overdue</option>
-                <option value="Paid">Paid</option>
+                <option value="Paid">Active</option>
                 <option value="Inactive">Inactive</option>
               </select>
             </div>
@@ -1367,9 +1358,8 @@
                 <tr>
                   <th>Student</th>
                   <th>Course</th>
-                  <th>Total Fees</th>
-                  <th>Paid</th>
-                  <th>Remaining</th>
+                  <th>Subscription</th>
+                  <th>Balance</th>
                   <th>Progress</th>
                   <th>Due Date</th>
                   <th>Status</th>
@@ -1743,6 +1733,22 @@
       localStorage.setItem('edu_students', JSON.stringify(students));
     }
 
+    function getSubscriptionBalance(s) {
+      if (!s.admissionDate || !s.dueDate || !s.totalFees) return { balance: s.totalFees || 0, elapsed: 0, totalMonths: 1, pct: 0 };
+      const start = new Date(s.admissionDate);
+      const end = new Date(s.dueDate);
+      const today = new Date();
+      const totalMs = end - start;
+      const totalMonths = Math.max(1, Math.round(totalMs / (30.44 * 24 * 60 * 60 * 1000)));
+      const perMonth = s.totalFees / totalMonths;
+      const msElapsed = Math.max(0, today - start);
+      const monthsElapsed = Math.min(totalMonths, Math.floor(msElapsed / (30.44 * 24 * 60 * 60 * 1000)));
+      const used = monthsElapsed * perMonth;
+      const balance = Math.max(0, Math.round(s.totalFees - used));
+      const pct = Math.min(100, Math.round((monthsElapsed / totalMonths) * 100));
+      return { balance, elapsed: monthsElapsed, totalMonths, pct, perMonth: Math.round(perMonth) };
+    }
+
     function getStatus(s) {
       if (s.status === 'inactive') return 'Inactive';
 
@@ -1759,14 +1765,14 @@
         }
       }
 
-      const rem = s.totalFees - s.paidFees;
-      if (rem <= 0) return 'Paid';
+      const { balance } = getSubscriptionBalance(s);
+      if (balance <= 0) return 'Expired';
 
-      return 'Pending';
+      return 'Active';
     }
 
     function statusBadge(status) {
-      const map = { Paid: 'badge-green', Pending: 'badge-amber', Overdue: 'badge-red', Inactive: 'badge-gray' };
+      const map = { Active: 'badge-green', Expired: 'badge-amber', Overdue: 'badge-red', Inactive: 'badge-gray' };
       return `<span class="status-pill ${map[status] || 'badge-amber'}">${status}</span>`;
     }
 
@@ -1802,9 +1808,7 @@
     }
 
     function calcRemaining() {
-      const total = parseFloat(document.getElementById('f-total-fees').value) || 0;
-      const paid = parseFloat(document.getElementById('f-paid').value) || 0;
-      document.getElementById('f-remaining').value = Math.max(0, total - paid);
+      // No-op: subscription model no longer tracks paid/remaining at admission
     }
 
     let _editingId = null;
@@ -1831,7 +1835,7 @@
           s.gender = document.getElementById('f-gender').value;
           s.shift = document.getElementById('f-shift').value;
           s.totalFees = total;
-          s.paidFees = parseFloat(document.getElementById('f-paid').value) || 0;
+          s.paidFees = s.totalFees; // Fully paid subscription upfront
           s.admissionDate = document.getElementById('f-admission-date').value || new Date().toISOString().split('T')[0];
           s.dueDate = document.getElementById('f-due-date').value;
           save();
@@ -1849,7 +1853,7 @@
           gender: document.getElementById('f-gender').value,
           shift: document.getElementById('f-shift').value,
           totalFees: total,
-          paidFees: parseFloat(document.getElementById('f-paid').value) || 0,
+          paidFees: parseFloat(document.getElementById('f-total-fees').value) || 0, // Fully paid upfront
           admissionDate: document.getElementById('f-admission-date').value || new Date().toISOString().split('T')[0],
           paymentDate: document.getElementById('f-payment-date') ? document.getElementById('f-payment-date').value : '',
           dueDate: document.getElementById('f-due-date').value,
@@ -1880,8 +1884,7 @@
       document.getElementById('f-gender').value = s.gender || 'Male';
       document.getElementById('f-shift').value = s.shift || 'Day';
       document.getElementById('f-total-fees').value = s.totalFees;
-      document.getElementById('f-paid').value = s.paidFees;
-      document.getElementById('f-remaining').value = Math.max(0, s.totalFees - s.paidFees);
+      // Paid/Remaining fields removed — subscription model
       document.getElementById('f-admission-date').value = s.admissionDate || '';
       document.getElementById('f-due-date').value = s.dueDate || '';
       document.getElementById('new-id').textContent = s.id;
@@ -1908,7 +1911,7 @@
       const s = students.find(x => x.id === id);
       if(!s) return;
       const content = document.getElementById('student-details-content');
-      const rem = s.totalFees - s.paidFees;
+      const { balance, elapsed, totalMonths, perMonth } = getSubscriptionBalance(s);
       const st = getStatus(s);
       
       let avatarHtml = `<div class="avatar" style="width:64px;height:64px;font-size:24px;background:var(--accent-bg);color:var(--accent)">${getInitials(s.name)}</div>`;
@@ -1943,9 +1946,10 @@
           <div><strong>Admission Date:</strong> ${s.admissionDate || 'N/A'}</div>
           <div><strong>Conditions:</strong> ${s.conditions || s.parentName || 'N/A'}</div>
           <div><strong>Address:</strong> ${s.address || 'N/A'}</div>
-          <div><strong>Total Fees:</strong> ${formatCurrency(s.totalFees)}</div>
-          <div><strong>Paid Fees:</strong> ${formatCurrency(s.paidFees)}</div>
-          <div><strong>Remaining:</strong> <span style="color:var(--amber)">${formatCurrency(rem)}</span></div>
+          <div><strong>Subscription:</strong> ${formatCurrency(s.totalFees)}</div>
+          <div><strong>Monthly Rate:</strong> ${formatCurrency(perMonth)}/mo</div>
+          <div><strong>Balance:</strong> <span style="color:${balance > 0 ? 'var(--green)' : 'var(--amber)'}">${formatCurrency(balance)}</span></div>
+          <div><strong>Used:</strong> ${elapsed} of ${totalMonths} months</div>
           <div><strong>Due Date:</strong> ${s.dueDate || 'N/A'}</div>
         </div>
       `;
@@ -1987,10 +1991,10 @@
       });
 
       const tbody = document.getElementById('student-table');
-      if (!filtered.length) { tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--text3)">No students found.</td></tr>'; return; }
+      if (!filtered.length) { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text3)">No students found.</td></tr>'; return; }
       tbody.innerHTML = filtered.map((s, i) => {
         const status = getStatus(s);
-        const rem = s.totalFees - s.paidFees;
+        const { balance } = getSubscriptionBalance(s);
         return `<tr onclick="showStudentDetails('${s.id}')" style="cursor:pointer">
       <td><div class="student-cell">
         <div class="avatar" style="background:${getColor(i)}20;color:${getColor(i)}">${getInitials(s.name)}</div>
@@ -1999,8 +2003,7 @@
       <td style="color:var(--text2)">${s.phone}</td>
       <td><span class="status-pill badge-purple">${s.course}</span></td>
       <td>₹${s.totalFees.toLocaleString()}</td>
-      <td style="color:var(--green)">₹${s.paidFees.toLocaleString()}</td>
-      <td style="color:var(--amber)">₹${Math.max(0, rem).toLocaleString()}</td>
+      <td style="color:${balance > 0 ? 'var(--green)' : 'var(--amber)'}">₹${balance.toLocaleString()}</td>
       <td>${statusBadge(status)}</td>
       <td><div class="action-btns">
         <button class="icon-btn" onclick="event.stopPropagation(); openPaymentModal('${s.id}')" title="Record Payment">
@@ -2028,9 +2031,9 @@
       if (!filtered.length) { tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--text3)">No records found.</td></tr>'; return; }
       tbody.innerHTML = filtered.map((s, i) => {
         const status = getStatus(s);
-        const rem = Math.max(0, s.totalFees - s.paidFees);
-        const pct = s.totalFees > 0 ? Math.min(100, Math.round((s.paidFees / s.totalFees) * 100)) : 0;
-        const barColor = status === 'Paid' ? 'var(--green)' : status === 'Overdue' ? 'var(--red)' : 'var(--amber)';
+        const { balance, pct } = getSubscriptionBalance(s);
+        const barColor = status === 'Active' ? 'var(--green)' : status === 'Overdue' ? 'var(--red)' : 'var(--amber)';
+        const timeLeft = 100 - pct;
         return `<tr>
       <td><div class="student-cell">
         <div class="avatar" style="background:${getColor(i)}20;color:${getColor(i)}">${getInitials(s.name)}</div>
@@ -2038,9 +2041,8 @@
       </div></td>
       <td style="font-size:12px;color:var(--text2)">${s.course}</td>
       <td>₹${s.totalFees.toLocaleString()}</td>
-      <td style="color:var(--green)">₹${s.paidFees.toLocaleString()}</td>
-      <td style="color:var(--amber)">₹${rem.toLocaleString()}</td>
-      <td style="min-width:100px"><div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${barColor}"></div></div><div style="font-size:11px;color:var(--text3);margin-top:3px">${pct}%</div></td>
+      <td style="color:${balance > 0 ? 'var(--green)' : 'var(--amber)'}">₹${balance.toLocaleString()}</td>
+      <td style="min-width:100px"><div class="progress-bar"><div class="progress-fill" style="width:${timeLeft}%;background:${barColor}"></div></div><div style="font-size:11px;color:var(--text3);margin-top:3px">${timeLeft}% left</div></td>
       <td style="font-size:12px;color:var(--text3)">${s.dueDate || '—'}</td>
       <td>${statusBadge(status)}</td>
       <td><button class="btn btn-ghost" style="font-size:11px;padding:5px 10px" onclick="openPaymentModal('${s.id}')">Pay</button></td>
@@ -2055,8 +2057,8 @@
         const d = new Date(s.admissionDate);
         return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
       }).length;
-      const collected = students.reduce((a, s) => a + s.paidFees, 0);
-      const pending = students.reduce((a, s) => a + Math.max(0, s.totalFees - s.paidFees), 0);
+      const collected = students.reduce((a, s) => a + s.totalFees, 0);
+      const pending = students.reduce((a, s) => a + getSubscriptionBalance(s).balance, 0);
 
       document.getElementById('stat-total').textContent = total;
       document.getElementById('stat-new').textContent = newThis;
@@ -2112,7 +2114,7 @@
       const today = new Date();
       const soon = new Date(); soon.setDate(today.getDate() + 5);
       const needReminder = students.filter(s => {
-        if (getStatus(s) === 'Paid') return false;
+        if (getStatus(s) === 'Active') return false;
         if (!s.dueDate) return getStatus(s) === 'Overdue';
         const due = new Date(s.dueDate);
         return due <= soon;
@@ -2126,10 +2128,10 @@
       list.innerHTML = needReminder.map((s, i) => {
         const status = getStatus(s);
         const isOverdue = status === 'Overdue';
-        const rem = Math.max(0, s.totalFees - s.paidFees);
+        const { balance } = getSubscriptionBalance(s);
         const daysLeft = s.dueDate ? Math.ceil((new Date(s.dueDate) - today) / 86400000) : null;
-        const msg = isOverdue ? `Payment overdue! ₹${rem.toLocaleString()} pending.` :
-          daysLeft !== null ? `Fee due in ${daysLeft} day(s). ₹${rem.toLocaleString()} remaining.` : `Pending fee: ₹${rem.toLocaleString()}`;
+        const msg = isOverdue ? `Subscription expired! ₹${balance.toLocaleString()} balance.` :
+          daysLeft !== null ? `Subscription expires in ${daysLeft} day(s). ₹${balance.toLocaleString()} balance.` : `Balance: ₹${balance.toLocaleString()}`;
         const color = isOverdue ? 'var(--red)' : 'var(--amber)';
         const bgColor = isOverdue ? 'var(--red-bg)' : 'var(--amber-bg)';
         return `<div class="reminder-card">
@@ -2150,7 +2152,7 @@
       const today = new Date();
       const soon = new Date(); soon.setDate(today.getDate() + 5);
       const n = students.filter(s => {
-        if (getStatus(s) === 'Paid') return false;
+        if (getStatus(s) === 'Active') return false;
         if (!s.dueDate) return getStatus(s) === 'Overdue';
         return new Date(s.dueDate) <= soon;
       }).length;
@@ -2160,10 +2162,10 @@
     function openPaymentModal(id) {
       payingStudentId = id;
       const s = students.find(x => x.id === id);
-      const rem = Math.max(0, s.totalFees - s.paidFees);
+      const { balance } = getSubscriptionBalance(s);
       payingStudentGender = s.gender || 'Male';
       document.getElementById('payment-student-info').innerHTML =
-        `<strong>${s.name}</strong> (${s.id}) · ${s.course}<br>Total: ₹${s.totalFees.toLocaleString()} · Paid: ₹${s.paidFees.toLocaleString()} · <span style="color:var(--amber)">Remaining: ₹${rem.toLocaleString()}</span>`;
+        `<strong>${s.name}</strong> (${s.id}) · ${s.course}<br>Subscription: ₹${s.totalFees.toLocaleString()} · <span style="color:${balance > 0 ? 'var(--green)' : 'var(--amber)'}">Balance: ₹${balance.toLocaleString()}</span>`;
       document.getElementById('pay-amount').value = '';
       document.getElementById('pay-date').value = new Date().toISOString().split('T')[0];
       const nextDue = document.getElementById('pay-next-due-date');
@@ -2198,8 +2200,8 @@
       const fromDate = document.getElementById('pay-from-date');
       const shift = document.getElementById('pay-shift').value;
       s.shift = shift;
-      s.totalFees += amount;  // Subscription renewal: increase total
-      s.paidFees += amount;
+      s.totalFees = amount;  // New subscription period replaces old fee
+      s.paidFees = amount;   // Fully paid upfront
       s.status = 'active'; // Automatically reactivate
       if (nextDue && nextDue.value) {
         s.dueDate = nextDue.value;
@@ -2276,8 +2278,8 @@
       <div class="receipt-row"><span style="color:var(--text3)">Payment Method</span><span>${method}</span></div>
       ${notes ? `<div class="receipt-row"><span style="color:var(--text3)">Notes</span><span>${notes}</span></div>` : ''}
       <div class="receipt-row"><span style="color:var(--text3)">Amount Paid</span><span style="color:var(--green)">₹${amount.toLocaleString()}</span></div>
-      <div class="receipt-row"><span style="color:var(--text3)">Total Paid So Far</span><span>₹${s.paidFees.toLocaleString()}</span></div>
-      <div class="receipt-row total"><span>Remaining Balance</span><span>₹${Math.max(0, s.totalFees - s.paidFees).toLocaleString()}</span></div>
+      <div class="receipt-row"><span style="color:var(--text3)">Subscription Period</span><span>${s.dueDate ? 'Until ' + s.dueDate : 'N/A'}</span></div>
+      <div class="receipt-row total"><span>Subscription Balance</span><span>₹${getSubscriptionBalance(s).balance.toLocaleString()}</span></div>
     </div>
   `;
     }
@@ -2309,8 +2311,8 @@
 
     function exportCSV() {
       if (!students.length) { showToast('No data to export', 'red'); return; }
-      const headers = ['ID', 'Name', 'Conditions', 'Photo', 'Phone', 'Email', 'Course', 'Admission Date', 'Total Fees', 'Paid', 'Remaining', 'Due Date', 'Status'];
-      const rows = students.map(s => [s.id, s.name, s.conditions, s.photo, s.phone, s.email, s.course, s.admissionDate, s.totalFees, s.paidFees, Math.max(0, s.totalFees - s.paidFees), s.dueDate, getStatus(s)]);
+      const headers = ['ID', 'Name', 'Conditions', 'Photo', 'Phone', 'Email', 'Course', 'Admission Date', 'Subscription', 'Balance', 'Due Date', 'Status'];
+      const rows = students.map(s => [s.id, s.name, s.conditions, s.photo, s.phone, s.email, s.course, s.admissionDate, s.totalFees, getSubscriptionBalance(s).balance, s.dueDate, getStatus(s)]);
       const csv = [headers, ...rows].map(r => r.join(',')).join('\n');
       const a = document.createElement('a');
       a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
@@ -2323,8 +2325,8 @@
       if (!students.length) { showToast('No data to export', 'red'); return; }
       const data = students.map(s => ({
         ID: s.id, Name: s.name, Conditions: s.conditions, Photo: s.photo, Phone: s.phone, Email: s.email,
-        Course: s.course, 'Admission Date': s.admissionDate, 'Total Fees': s.totalFees,
-        'Paid Fees': s.paidFees, Remaining: Math.max(0, s.totalFees - s.paidFees),
+        Course: s.course, 'Admission Date': s.admissionDate, 'Subscription': s.totalFees,
+        'Balance': getSubscriptionBalance(s).balance,
         'Due Date': s.dueDate, Status: getStatus(s)
       }));
       const ws = XLSX.utils.json_to_sheet(data);
@@ -2343,8 +2345,8 @@
       doc.setFontSize(10);
       doc.text('Generated: ' + new Date().toLocaleDateString(), 14, 25);
       let y = 35;
-      const headers = ['ID', 'Name', 'Course', 'Phone', 'Total', 'Paid', 'Remaining', 'Status'];
-      const colWidths = [24, 40, 50, 32, 24, 24, 28, 22];
+      const headers = ['ID', 'Name', 'Course', 'Phone', 'Subscription', 'Balance', 'Status'];
+      const colWidths = [24, 40, 50, 32, 28, 28, 22];
       doc.setFillColor(40, 40, 60);
       doc.rect(10, y - 6, 277, 10, 'F');
       doc.setTextColor(255, 255, 255);
@@ -2355,8 +2357,8 @@
       students.forEach((s, idx) => {
         if (y > 185) { doc.addPage(); y = 20; }
         if (idx % 2 === 0) { doc.setFillColor(245, 245, 250); doc.rect(10, y - 5, 277, 9, 'F'); }
-        const rem = Math.max(0, s.totalFees - s.paidFees);
-        const row = [s.id, s.name.slice(0, 20), s.course.slice(0, 22), s.phone, '₹' + s.totalFees, '₹' + s.paidFees, '₹' + rem, getStatus(s)];
+        const { balance } = getSubscriptionBalance(s);
+        const row = [s.id, s.name.slice(0, 20), s.course.slice(0, 22), s.phone, '₹' + s.totalFees, '₹' + balance, getStatus(s)];
         x = 14;
         row.forEach((cell, i) => { doc.text(String(cell), x, y); x += colWidths[i]; });
         y += 9;

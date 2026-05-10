@@ -128,8 +128,8 @@
         <div class="stats-grid">
           <div class="stat-card"><div class="stat-label">Total Students</div><div class="stat-value" id="stat-total">—</div><span class="stat-badge badge-blue">Enrolled</span></div>
           <div class="stat-card"><div class="stat-label">New This Month</div><div class="stat-value" id="stat-new">—</div><span class="stat-badge badge-green">This month</span></div>
-          <div class="stat-card"><div class="stat-label">Fees Collected</div><div class="stat-value" id="stat-collected">—</div><span class="stat-badge badge-green">Total paid</span></div>
-          <div class="stat-card"><div class="stat-label">Pending Fees</div><div class="stat-value" id="stat-pending">—</div><span class="stat-badge badge-amber">Outstanding</span></div>
+          <div class="stat-card"><div class="stat-label">Subscriptions</div><div class="stat-value" id="stat-collected">—</div><span class="stat-badge badge-green">Total value</span></div>
+          <div class="stat-card"><div class="stat-label">Active Balance</div><div class="stat-value" id="stat-pending">—</div><span class="stat-badge badge-amber">Remaining</span></div>
         </div>
         <div class="charts-row">
           <div class="chart-card"><div class="chart-title">Fee Collection Overview</div><div style="position:relative;height:220px"><canvas id="feeChart"></canvas></div></div>
@@ -149,12 +149,12 @@
             <div class="table-title">All Students</div>
             <div class="table-filters">
               <select class="filter-sel" id="filter-course"><option value="">All Courses</option></select>
-              <select class="filter-sel" id="filter-status"><option value="">All Status</option><option value="Paid">Paid</option><option value="Pending">Pending</option><option value="Overdue">Overdue</option><option value="Inactive">Inactive</option></select>
+              <select class="filter-sel" id="filter-status"><option value="">All Status</option><option value="Paid">Active</option><option value="Pending">Pending</option><option value="Overdue">Overdue</option><option value="Inactive">Inactive</option></select>
             </div>
           </div>
           <div style="overflow-x:auto">
-            <table><thead><tr><th>Student</th><th>Phone</th><th>Course</th><th>Total Fees</th><th>Paid</th><th>Remaining</th><th>Status</th><th>Actions</th></tr></thead>
-            <tbody id="student-table"><tr><td colspan="8" style="text-align:center;padding:30px;color:var(--text3)">Loading...</td></tr></tbody></table>
+            <table><thead><tr><th>Student</th><th>Phone</th><th>Course</th><th>Subscription</th><th>Balance</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="student-table"><tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text3)">Loading...</td></tr></tbody></table>
           </div>
           <div class="pagination" id="pagination"></div>
         </div>
@@ -182,9 +182,7 @@
               <div class="form-group"><label>Course *</label><select id="f-course"><option value="">Select Course</option><option>UPSC MPSC</option><option>IIT JEE/MHT CET</option><option>MEDICAL</option><option>OTHER</option></select></div>
               <div class="form-group"><label>Study Shift</label><select id="f-shift" onchange="window.SwamiAbhyasika.autoUpdateAdmissionFee()"><option value="Day">Day</option><option value="Night">Night</option><option value="Both">Both</option></select></div>
               <div class="form-group"><label>Subscription Months</label><select id="f-months" onchange="window.SwamiAbhyasika.autoUpdateAdmissionFee()"><option value="1">1 Month</option><option value="2">2 Months</option><option value="3">3 Months</option><option value="6">6 Months</option><option value="12">12 Months</option></select></div>
-              <div class="form-group"><label>Total Fees (₹) *</label><input type="number" id="f-total-fees" placeholder="0" oninput="window.SwamiAbhyasika.calcRemaining()"></div>
-              <div class="form-group"><label>Paid Amount (₹)</label><input type="number" id="f-paid" placeholder="0" oninput="window.SwamiAbhyasika.calcRemaining()"></div>
-              <div class="form-group"><label>Remaining (₹)</label><input type="number" id="f-remaining" readonly style="color:var(--amber)"></div>
+              <div class="form-group"><label>Subscription Fee (₹) *</label><input type="number" id="f-total-fees" placeholder="0" readonly style="font-weight:600;color:var(--accent)"></div>
               <div class="form-group"><label>Payment Date</label><input type="date" id="f-payment-date"></div>
               <div class="form-group"><label>Fee Due Date</label><input type="date" id="f-due-date"></div>
             </div>
@@ -204,7 +202,7 @@
             <div class="table-filters"><select class="filter-sel" id="fee-filter"><option value="">All Students</option><option value="Pending">Pending</option><option value="Overdue">Overdue</option><option value="Paid">Paid</option><option value="Inactive">Inactive</option></select></div>
           </div>
           <div style="overflow-x:auto">
-            <table><thead><tr><th>Student</th><th>Course</th><th>Total Fees</th><th>Paid</th><th>Remaining</th><th>Progress</th><th>Due Date</th><th>Status</th><th>Action</th></tr></thead>
+            <table><thead><tr><th>Student</th><th>Course</th><th>Subscription</th><th>Balance</th><th>Progress</th><th>Due Date</th><th>Status</th><th>Action</th></tr></thead>
             <tbody id="fee-table"></tbody></table>
           </div>
         </div>

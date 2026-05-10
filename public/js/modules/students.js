@@ -37,7 +37,7 @@ export async function renderStudentTable() {
     }
 
     tbody.innerHTML = students.map((s, i) => {
-      const rem = Math.max(0, s.total_fees - s.paid_fees);
+      const statusLabel = s.fee_status === 'Paid' ? 'Active' : s.fee_status;
       return `<tr onclick="window.SwamiAbhyasika.showStudentDetails('${s.id}')" style="cursor:pointer">
         <td><div class="student-cell">
           <div class="avatar" style="background:${getColor(i)}20;color:${getColor(i)}">${getInitials(s.name)}</div>
@@ -46,9 +46,7 @@ export async function renderStudentTable() {
         <td style="color:var(--text2)">${s.phone}</td>
         <td><span class="status-pill badge-purple">${s.course}</span></td>
         <td>${formatCurrency(s.total_fees)}</td>
-        <td style="color:var(--green)">${formatCurrency(s.paid_fees)}</td>
-        <td style="color:var(--amber)">${formatCurrency(rem)}</td>
-        <td><span class="status-pill ${statusBadgeClass(s.fee_status)}">${s.fee_status}</span></td>
+        <td><span class="status-pill ${statusBadgeClass(s.fee_status)}">${statusLabel}</span></td>
         <td><div class="action-btns">
           <button class="icon-btn" onclick="event.stopPropagation(); window.SwamiAbhyasika.openPaymentModal('${s.id}')" title="Record Payment">
             <svg fill="currentColor" viewBox="0 0 24 24"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg>
@@ -69,7 +67,7 @@ export async function renderStudentTable() {
 
     renderPagination(pagination);
   } catch (err) {
-    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--red)">Failed to load students</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--red)">Failed to load students</td></tr>';
     showToast('Failed to load students', 'red');
   }
 }
@@ -142,7 +140,7 @@ export async function submitAdmission() {
       address: document.getElementById('f-address').value.trim(),
       course: courseEl.value,
       total_fees: parseFloat(totalEl.value),
-      paid_fees: parseFloat(document.getElementById('f-paid').value) || 0,
+      paid_fees: parseFloat(totalEl.value) || 0, // Fully paid subscription upfront
       gender: document.getElementById('f-gender').value,
       shift: document.getElementById('f-shift').value,
       admission_date: document.getElementById('f-admission-date').value || new Date().toISOString().split('T')[0],
