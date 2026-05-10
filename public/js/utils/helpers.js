@@ -36,3 +36,26 @@ export function statusBadgeClass(status) {
   const map = { Paid: 'badge-green', Pending: 'badge-amber', Overdue: 'badge-red', Inactive: 'badge-gray' };
   return map[status] || 'badge-amber';
 }
+
+export function customConfirm(message, title = 'Confirm Action', btnText = 'Confirm', btnColor = 'var(--primary)') {
+  return new Promise((resolve) => {
+    window._confirmResolve = resolve;
+    document.getElementById('confirm-title').textContent = title;
+    document.getElementById('confirm-message').textContent = message;
+    
+    const confirmBtn = document.getElementById('confirm-btn');
+    confirmBtn.textContent = btnText;
+    confirmBtn.style.background = btnColor;
+    confirmBtn.style.borderColor = btnColor;
+    
+    document.getElementById('confirm-modal').classList.add('active');
+  });
+}
+
+export function closeConfirm(result) {
+  document.getElementById('confirm-modal').classList.remove('active');
+  if (window._confirmResolve) {
+    window._confirmResolve(result);
+    window._confirmResolve = null;
+  }
+}

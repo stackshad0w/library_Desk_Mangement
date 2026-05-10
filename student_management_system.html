@@ -1561,6 +1561,18 @@
     </div>
   </div>
 
+  <!-- CONFIRM MODAL -->
+  <div class="modal-overlay" id="confirm-modal">
+    <div class="modal" style="max-width: 400px; padding: 24px;">
+      <h3 id="confirm-title" style="margin-top:0; margin-bottom: 12px; font-size:18px;">Confirm Action</h3>
+      <p id="confirm-message" style="margin-bottom:24px; color:var(--text2); font-size:14px;">Are you sure you want to proceed?</p>
+      <div class="form-actions" style="margin-top:0;">
+        <button class="btn btn-ghost" onclick="closeConfirm(false)">Cancel</button>
+        <button class="btn btn-primary" id="confirm-btn" onclick="closeConfirm(true)">Confirm</button>
+      </div>
+    </div>
+  </div>
+
   <!-- TOAST -->
   <div class="toast" id="toast">
     <div class="toast-dot" id="toast-dot"></div>
@@ -1570,6 +1582,30 @@
   <script>
     let students = JSON.parse(localStorage.getItem('edu_students') || '[]');
     let payingStudentId = null;
+    let _confirmResolve = null;
+
+    function customConfirm(message, title = 'Confirm Action', btnText = 'Confirm', btnColor = 'var(--primary)') {
+      return new Promise((resolve) => {
+        _confirmResolve = resolve;
+        document.getElementById('confirm-title').textContent = title;
+        document.getElementById('confirm-message').textContent = message;
+        
+        const confirmBtn = document.getElementById('confirm-btn');
+        confirmBtn.textContent = btnText;
+        confirmBtn.style.background = btnColor;
+        confirmBtn.style.borderColor = btnColor;
+        
+        document.getElementById('confirm-modal').classList.add('active');
+      });
+    }
+
+    function closeConfirm(result) {
+      document.getElementById('confirm-modal').classList.remove('active');
+      if (_confirmResolve) {
+        _confirmResolve(result);
+        _confirmResolve = null;
+      }
+    }
     let feeChart = null, courseChart = null;
 
     const avatarColors = ['#6c63ff', '#22c55e', '#f59e0b', '#ef4444', '#38bdf8', '#ec4899', '#14b8a6', '#f97316'];
@@ -1783,8 +1819,9 @@
       document.getElementById('student-details-modal').classList.add('active');
     }
 
-    function toggleStudentStatus(id, newStatus) {
-      if (!confirm(`Are you sure you want to mark this student as ${newStatus}?`)) return;
+    async function toggleStudentStatus(id, newStatus) {
+      const result = await customConfirm(`Are you sure you want to mark this student as ${newStatus}?`, 'Change Status', newStatus === 'active' ? 'Reactivate' : 'Deactivate', newStatus === 'active' ? 'var(--green)' : 'var(--amber)');
+      if (!result) return;
       const s = students.find(x => x.id === id);
       if (s) {
         s.status = newStatus;
@@ -2076,8 +2113,9 @@
   `;
     }
 
-    function deleteStudent(id) {
-      if (!confirm('Delete this student?')) return;
+    async function deleteStudent(id) {
+      const result = await customConfirm('Delete this student? This action cannot be undone.', 'Delete Student', 'Delete', 'var(--red)');
+      if (!result) return;
       students = students.filter(s => s.id !== id);
       save();
       renderStudentTable();

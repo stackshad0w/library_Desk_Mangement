@@ -175,7 +175,8 @@ export function calcRemaining() {
 }
 
 export async function deleteStudent(id) {
-  if (!confirm('Delete this student? This action cannot be undone.')) return;
+  const result = await window.SwamiAbhyasika.customConfirm('Delete this student? This action cannot be undone.', 'Delete Student', 'Delete', 'var(--red)');
+  if (!result) return;
   try {
     await api.delete(`/students/${id}`);
     showToast('Student deleted', 'red');
@@ -257,7 +258,8 @@ export async function showStudentDetails(id) {
 }
 
 export async function toggleStudentStatus(id, status) {
-  if (!confirm(`Are you sure you want to mark this student as ${status}?`)) return;
+  const result = await window.SwamiAbhyasika.customConfirm(`Are you sure you want to mark this student as ${status}?`, 'Change Status', status === 'active' ? 'Reactivate' : 'Deactivate', status === 'active' ? 'var(--green)' : 'var(--amber)');
+  if (!result) return;
   try {
     await api.put(`/students/${id}`, { status });
     showToast(`Student marked as ${status}`, 'green');
