@@ -28,10 +28,10 @@ function recordPayment(req, res) {
 
   // Update student paid_fees and due_date
   if (new_due_date) {
-    db.prepare('UPDATE students SET paid_fees = paid_fees + ?, due_date = ?, updated_at = datetime(\'now\') WHERE id = ?')
+    db.prepare('UPDATE students SET paid_fees = paid_fees + ?, due_date = ?, status = \'active\', updated_at = datetime(\'now\') WHERE id = ?')
       .run(amount, new_due_date, student_id);
   } else {
-    db.prepare('UPDATE students SET paid_fees = paid_fees + ?, updated_at = datetime(\'now\') WHERE id = ?')
+    db.prepare('UPDATE students SET paid_fees = paid_fees + ?, status = \'active\', updated_at = datetime(\'now\') WHERE id = ?')
       .run(amount, student_id);
   }
 

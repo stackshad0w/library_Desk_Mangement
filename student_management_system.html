@@ -2018,6 +2018,7 @@
       const fromDate = document.getElementById('pay-from-date');
       
       s.paidFees += amount;
+      s.status = 'active'; // Automatically reactivate
       if (nextDue && nextDue.value) {
         s.dueDate = nextDue.value;
       }
