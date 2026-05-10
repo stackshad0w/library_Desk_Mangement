@@ -1103,6 +1103,15 @@
 
       <!-- DASHBOARD -->
       <div class="page active" id="page-dashboard">
+        <div style="text-align:center;padding:60px 20px;">
+          <svg fill="currentColor" viewBox="0 0 24 24" style="width:48px;height:48px;margin:0 auto 12px;opacity:0.3;display:block;"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+          <h2 style="margin-bottom:10px;">Welcome to Swami Abhyasika Dashboard</h2>
+          <p style="color:var(--text3)">Select an option from the sidebar to manage students, fees, or view statistics.</p>
+        </div>
+      </div>
+
+      <!-- STATISTICS -->
+      <div class="page" id="page-statistics">
         <div class="stats-grid">
           <div class="stat-card">
             <div class="stat-label">Total Students</div>
@@ -1262,16 +1271,10 @@
                 <label>Course / Class *</label>
                 <select id="f-course">
                   <option value="">Select Course</option>
-                  <option>B.Tech Computer Science</option>
-                  <option>B.Tech Electronics</option>
-                  <option>BCA</option>
-                  <option>MCA</option>
-                  <option>MBA</option>
-                  <option>B.Sc Mathematics</option>
-                  <option>B.Com</option>
-                  <option>B.A English</option>
-                  <option>Diploma Engineering</option>
-                  <option>Other</option>
+                  <option>UPSC MPSC</option>
+                  <option>IIT JEE/MHT CET</option>
+                  <option>MEDICAL</option>
+                  <option>OTHER</option>
                 </select>
               </div>
               <div class="form-group">
@@ -1350,21 +1353,7 @@
         <div id="reminders-list"></div>
       </div>
 
-      <!-- STATISTICS -->
-      <div class="page" id="page-statistics">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
-          <div>
-            <h2 style="font-size:16px;font-weight:600;margin-bottom:4px">Statistics & Movement</h2>
-            <p style="font-size:13px;color:var(--text3)">Analyze data and know what things to move.</p>
-          </div>
-        </div>
-        <div class="empty-state">
-          <svg fill="currentColor" viewBox="0 0 24 24">
-            <path d="M10 20h4V4h-4v16zm-6 0h4v-8H4v8zM16 9v11h4V9h-4z" />
-          </svg>
-          <p>Advanced statistics and asset movement recommendations will appear here.</p>
-        </div>
-      </div>
+
 
       <!-- EXPORT -->
       <div class="page" id="page-export">
@@ -1600,7 +1589,7 @@
       if (btnNewStudent) btnNewStudent.style.display = (id !== 'hubs' && id !== 'memberships') ? 'flex' : 'none';
       if (btnRegisterHub) btnRegisterHub.style.display = (id === 'hubs') ? 'flex' : 'none';
 
-      if (id === 'dashboard') renderDashboard();
+      if (id === 'statistics') renderDashboard();
       if (id === 'admissions') renderStudentTable();
       if (id === 'fees') renderFeeTable();
       if (id === 'reminders') renderReminders();

@@ -6,9 +6,7 @@ export const TOAST_DURATION = 3000;
 export const DEBOUNCE_DELAY = 300;
 
 export const COURSES = [
-  'B.Tech Computer Science', 'B.Tech Electronics', 'BCA', 'MCA',
-  'MBA', 'B.Sc Mathematics', 'B.Com', 'B.A English',
-  'Diploma Engineering', 'Other',
+  'UPSC MPSC', 'IIT JEE/MHT CET', 'MEDICAL', 'OTHER'
 ];
 
 export const PAYMENT_METHODS = [

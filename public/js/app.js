@@ -16,7 +16,7 @@ setupAuthUI();
 const titles = {
   dashboard: 'Dashboard', admissions: 'All Students',
   'admission-form': 'New Admission', fees: 'Fee Management',
-  reminders: 'Reminders', export: 'Export Data',
+  reminders: 'Reminders', export: 'Export Data', statistics: 'Statistics'
 };
 
 function showPage(id) {
@@ -36,7 +36,7 @@ function showPage(id) {
   document.querySelector('.sidebar')?.classList.remove('open');
 
   // Load page data
-  if (id === 'dashboard') renderDashboard();
+  if (id === 'statistics') renderDashboard();
   if (id === 'admissions') renderStudentTable();
   if (id === 'fees') renderFeeTable();
   if (id === 'reminders') renderReminders();

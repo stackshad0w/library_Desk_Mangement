@@ -46,6 +46,10 @@
         <svg fill="currentColor" viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
         Reminders <span class="nav-badge" id="reminder-badge">0</span>
       </div>
+      <div class="nav-item" data-page="statistics">
+        <svg fill="currentColor" viewBox="0 0 24 24"><path d="M10 20h4V4h-4v16zm-6 0h4v-8H4v8zM16 9v11h4V9h-4z" /></svg>
+        Statistics
+      </div>
       <div class="nav-section-label" style="margin-top:12px">Tools</div>
       <div class="nav-item" data-page="export">
         <svg fill="currentColor" viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
@@ -83,6 +87,15 @@
     <div class="content">
       <!-- DASHBOARD PAGE -->
       <div class="page active" id="page-dashboard">
+        <div style="text-align:center;padding:60px 20px;">
+          <svg fill="currentColor" viewBox="0 0 24 24" style="width:48px;height:48px;margin:0 auto 12px;opacity:0.3;display:block;"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+          <h2 style="margin-bottom:10px;">Welcome to Swami Abhyasika Dashboard</h2>
+          <p style="color:var(--text3)">Select an option from the sidebar to manage students, fees, or view statistics.</p>
+        </div>
+      </div>
+
+      <!-- STATISTICS PAGE -->
+      <div class="page" id="page-statistics">
         <div class="stats-grid">
           <div class="stat-card"><div class="stat-label">Total Students</div><div class="stat-value" id="stat-total">—</div><span class="stat-badge badge-blue">Enrolled</span></div>
           <div class="stat-card"><div class="stat-label">New This Month</div><div class="stat-value" id="stat-new">—</div><span class="stat-badge badge-green">This month</span></div>
@@ -136,7 +149,7 @@
           <div class="form-section">
             <div class="form-section-title"><svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82zM12 3L1 9l11 6 9-4.91V17h2V9L12 3z"/></svg> Course & Fee Details</div>
             <div class="form-grid">
-              <div class="form-group"><label>Course *</label><select id="f-course"><option value="">Select Course</option><option>B.Tech Computer Science</option><option>B.Tech Electronics</option><option>BCA</option><option>MCA</option><option>MBA</option><option>B.Sc Mathematics</option><option>B.Com</option><option>B.A English</option><option>Diploma Engineering</option><option>Other</option></select></div>
+              <div class="form-group"><label>Course *</label><select id="f-course"><option value="">Select Course</option><option>UPSC MPSC</option><option>IIT JEE/MHT CET</option><option>MEDICAL</option><option>OTHER</option></select></div>
               <div class="form-group"><label>Total Fees (₹) *</label><input type="number" id="f-total-fees" placeholder="0" oninput="window.SwamiAbhyasika.calcRemaining()"></div>
               <div class="form-group"><label>Paid Amount (₹)</label><input type="number" id="f-paid" placeholder="0" oninput="window.SwamiAbhyasika.calcRemaining()"></div>
               <div class="form-group"><label>Remaining (₹)</label><input type="number" id="f-remaining" readonly style="color:var(--amber)"></div>
