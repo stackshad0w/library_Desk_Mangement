@@ -1732,6 +1732,7 @@
       return name.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase();
     }
     function getColor(i) { return avatarColors[i % avatarColors.length]; }
+    function formatCurrency(amount) { return '₹' + (amount || 0).toLocaleString(); }
 
     function genId() {
       const n = students.length + 1;
