@@ -1318,7 +1318,7 @@
               </div>
               <div class="form-group">
                 <label>Subscription Fee (₹) *</label>
-                <input type="number" id="f-total-fees" placeholder="0" readonly style="font-weight:600;color:var(--accent)">
+                <input type="number" id="f-total-fees" placeholder="0">
               </div>
               <div class="form-group">
                 <label>Payment Date</label>
@@ -1905,6 +1905,7 @@
       _editingId = null;
       document.getElementById('new-id').textContent = genId();
       document.getElementById('f-admission-date').value = new Date().toISOString().split('T')[0];
+      setTimeout(() => autoUpdateAdmissionFee(), 50); // Auto-calculate base fee
     }
 
     function showStudentDetails(id) {

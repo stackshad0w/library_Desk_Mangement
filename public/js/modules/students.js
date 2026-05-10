@@ -177,12 +177,11 @@ export function resetForm() {
   const monthsEl = document.getElementById('f-months');
   if (monthsEl) monthsEl.value = '1';
   document.getElementById('f-admission-date').value = new Date().toISOString().split('T')[0];
+  setTimeout(() => window.SwamiAbhyasika.autoUpdateAdmissionFee(), 50);
 }
 
 export function calcRemaining() {
-  const total = parseFloat(document.getElementById('f-total-fees').value) || 0;
-  const paid = parseFloat(document.getElementById('f-paid').value) || 0;
-  document.getElementById('f-remaining').value = Math.max(0, total - paid);
+  // No-op: subscription model no longer tracks paid/remaining at admission
 }
 
 export async function deleteStudent(id) {
@@ -208,8 +207,6 @@ export async function editStudent(id) {
     document.getElementById('f-address').value = s.address || '';
     document.getElementById('f-course').value = s.course;
     document.getElementById('f-total-fees').value = s.total_fees;
-    document.getElementById('f-paid').value = s.paid_fees;
-    document.getElementById('f-remaining').value = Math.max(0, s.total_fees - s.paid_fees);
     document.getElementById('f-admission-date').value = s.admission_date;
     document.getElementById('f-due-date').value = s.due_date || '';
     document.getElementById('f-gender').value = s.gender || 'Male';
