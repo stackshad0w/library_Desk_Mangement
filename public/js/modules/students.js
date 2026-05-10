@@ -257,10 +257,11 @@ export async function showStudentDetails(id) {
 }
 
 export async function toggleStudentStatus(id, status) {
+  if (!confirm(`Are you sure you want to mark this student as ${status}?`)) return;
   try {
     await api.put(`/students/${id}`, { status });
     showToast(`Student marked as ${status}`, 'green');
-    document.getElementById('student-details-modal').classList.remove('active');
+    document.getElementById('student-details-modal')?.classList.remove('active');
     renderStudentTable();
   } catch (err) {
     showToast('Failed to update status', 'red');

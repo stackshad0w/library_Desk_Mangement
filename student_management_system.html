@@ -1784,12 +1784,13 @@
     }
 
     function toggleStudentStatus(id, newStatus) {
+      if (!confirm(`Are you sure you want to mark this student as ${newStatus}?`)) return;
       const s = students.find(x => x.id === id);
       if (s) {
         s.status = newStatus;
         save();
         showToast(`Student marked as ${newStatus}`);
-        document.getElementById('student-details-modal').classList.remove('active');
+        document.getElementById('student-details-modal')?.classList.remove('active');
         renderStudentTable();
       }
     }
