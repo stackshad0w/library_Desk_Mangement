@@ -25,7 +25,7 @@ function renderRecentTable(recent) {
     tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:30px;color:var(--text3)">No students yet. Add your first student!</td></tr>';
     return;
   }
-  tbody.innerHTML = recent.map((s, i) => `<tr>
+  tbody.innerHTML = recent.map((s, i) => `<tr onclick="window.SwamiAbhyasika.showStudentDetails('${s.id}')" style="cursor:pointer">
     <td><div class="student-cell">
       <div class="avatar" style="background:${getColor(i)}20;color:${getColor(i)}">${getInitials(s.name)}</div>
       <div><div class="student-name">${s.name}</div><div class="student-id">${s.id}</div></div>
