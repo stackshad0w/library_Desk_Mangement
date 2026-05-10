@@ -33,6 +33,6 @@ export function escapeHtml(str) {
 }
 
 export function statusBadgeClass(status) {
-  const map = { Paid: 'badge-green', Pending: 'badge-amber', Overdue: 'badge-red' };
+  const map = { Paid: 'badge-green', Pending: 'badge-amber', Overdue: 'badge-red', Inactive: 'badge-gray' };
   return map[status] || 'badge-amber';
 }

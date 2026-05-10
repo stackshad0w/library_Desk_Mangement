@@ -19,7 +19,7 @@
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-logo">
       <div class="logo-mark">
-        <div class="logo-icon"><svg viewBox="0 0 24 24"><path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3zM5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z"/></svg></div>
+        <img src="/img/logo.jpg" alt="Swami Abhyasika Logo" class="logo-icon-img">
         <div><div class="logo-text">Swami Abhyasika</div><div class="logo-sub">Management System</div></div>
       </div>
     </div>
@@ -120,7 +120,7 @@
             <div class="table-title">All Students</div>
             <div class="table-filters">
               <select class="filter-sel" id="filter-course"><option value="">All Courses</option></select>
-              <select class="filter-sel" id="filter-status"><option value="">All Status</option><option value="Paid">Paid</option><option value="Pending">Pending</option><option value="Overdue">Overdue</option></select>
+              <select class="filter-sel" id="filter-status"><option value="">All Status</option><option value="Paid">Paid</option><option value="Pending">Pending</option><option value="Overdue">Overdue</option><option value="Inactive">Inactive</option></select>
             </div>
           </div>
           <div style="overflow-x:auto">
@@ -169,7 +169,7 @@
         <div class="table-card">
           <div class="table-header">
             <div class="table-title">Fee Management</div>
-            <div class="table-filters"><select class="filter-sel" id="fee-filter"><option value="">All Students</option><option value="Pending">Pending</option><option value="Overdue">Overdue</option><option value="Paid">Paid</option></select></div>
+            <div class="table-filters"><select class="filter-sel" id="fee-filter"><option value="">All Students</option><option value="Pending">Pending</option><option value="Overdue">Overdue</option><option value="Paid">Paid</option><option value="Inactive">Inactive</option></select></div>
           </div>
           <div style="overflow-x:auto">
             <table><thead><tr><th>Student</th><th>Course</th><th>Total Fees</th><th>Paid</th><th>Remaining</th><th>Progress</th><th>Due Date</th><th>Status</th><th>Action</th></tr></thead>
@@ -229,6 +229,17 @@
         <button class="btn btn-primary" onclick="window.SwamiAbhyasika.savePayment()">Record Payment</button>
       </div>
       <div id="receipt-area"></div>
+    </div>
+  </div>
+
+  <!-- STUDENT DETAILS MODAL -->
+  <div class="modal-overlay" id="student-details-modal">
+    <div class="modal" style="max-width: 600px;">
+      <div class="modal-header">
+        <div class="modal-title">Student Details</div>
+        <button class="close-btn" onclick="window.SwamiAbhyasika.closeModal('student-details-modal')">×</button>
+      </div>
+      <div id="student-details-content" style="padding: 10px 0; font-size: 14px; line-height: 1.6;"></div>
     </div>
   </div>
 

@@ -48,6 +48,13 @@ function getAll(req, res) {
     enriched = enriched.filter(s => s.fee_status === status);
   }
 
+  // Push Inactive to the end
+  enriched.sort((a, b) => {
+    if (a.fee_status === 'Inactive' && b.fee_status !== 'Inactive') return 1;
+    if (a.fee_status !== 'Inactive' && b.fee_status === 'Inactive') return -1;
+    return 0;
+  });
+
   res.json({
     students: enriched,
     pagination: {

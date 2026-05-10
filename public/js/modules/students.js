@@ -202,3 +202,42 @@ export async function editStudent(id) {
     showToast('Failed to load student data', 'red');
   }
 }
+
+export async function showStudentDetails(id) {
+  try {
+    const s = await api.get(`/students/${id}`);
+    const content = document.getElementById('student-details-content');
+    const rem = Math.max(0, s.total_fees - s.paid_fees);
+    
+    let avatarHtml = `<div class="avatar" style="width:64px;height:64px;font-size:24px;background:var(--accent-bg);color:var(--accent)">${getInitials(s.name)}</div>`;
+    if (s.photo) {
+      avatarHtml = `<img src="${s.photo}" style="width:64px;height:64px;border-radius:50%;object-fit:cover;" />`;
+    }
+
+    content.innerHTML = `
+      <div style="display:flex; align-items:center; gap:16px; margin-bottom:20px;">
+        ${avatarHtml}
+        <div>
+          <h3 style="margin:0;font-size:18px;">${s.name}</h3>
+          <p style="margin:2px 0;color:var(--text2)">${s.id}</p>
+          <span class="status-pill ${statusBadgeClass(s.fee_status)}">${s.fee_status}</span>
+        </div>
+      </div>
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+        <div><strong>Course:</strong> ${s.course}</div>
+        <div><strong>Phone:</strong> ${s.phone}</div>
+        <div><strong>Email:</strong> ${s.email || 'N/A'}</div>
+        <div><strong>Admission Date:</strong> ${s.admission_date}</div>
+        <div><strong>Conditions:</strong> ${s.conditions || s.parent_name || 'N/A'}</div>
+        <div><strong>Address:</strong> ${s.address || 'N/A'}</div>
+        <div><strong>Total Fees:</strong> ${formatCurrency(s.total_fees)}</div>
+        <div><strong>Paid Fees:</strong> ${formatCurrency(s.paid_fees)}</div>
+        <div><strong>Remaining:</strong> <span style="color:var(--amber)">${formatCurrency(rem)}</span></div>
+        <div><strong>Due Date:</strong> ${s.due_date || 'N/A'}</div>
+      </div>
+    `;
+    document.getElementById('student-details-modal').classList.add('active');
+  } catch (err) {
+    showToast('Failed to load student details', 'red');
+  }
+}

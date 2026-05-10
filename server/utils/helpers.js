@@ -42,7 +42,12 @@ function getFeeStatus(student) {
   if (remaining <= 0) return 'Paid';
   const today = new Date();
   const due = student.due_date ? new Date(student.due_date) : null;
-  if (due && due < today) return 'Overdue';
+  if (due && due < today) {
+    const diffTime = today.getTime() - due.getTime();
+    const diffDays = diffTime / (1000 * 60 * 60 * 24);
+    if (diffDays > 60) return 'Inactive';
+    return 'Overdue';
+  }
   return 'Pending';
 }
 

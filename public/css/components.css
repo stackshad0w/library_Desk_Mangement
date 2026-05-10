@@ -28,6 +28,7 @@
 .sidebar-logo { padding: 24px 20px; border-bottom: 1px solid var(--border); }
 .logo-mark { display: flex; align-items: center; gap: 10px; }
 .logo-icon { width: 32px; height: 32px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+.logo-icon-img { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; }
 .logo-icon svg { width: 18px; height: 18px; fill: white; }
 .logo-text { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; color: var(--text); }
 .logo-sub { font-size: 10px; color: var(--text3); letter-spacing: 1px; text-transform: uppercase; margin-top: 2px; }
@@ -69,6 +70,7 @@
 .stat-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; padding: 2px 8px; border-radius: 20px; margin-top: 8px; }
 .badge-green { background: var(--green-bg); color: var(--green); }
 .badge-red { background: var(--red-bg); color: var(--red); }
+.badge-gray { background: var(--bg3); color: var(--text2); border: 1px solid var(--border); }
 .badge-amber { background: var(--amber-bg); color: var(--amber); }
 .badge-blue { background: var(--blue-bg); color: var(--blue); }
 .badge-purple { background: var(--accent-bg); color: var(--accent2); }

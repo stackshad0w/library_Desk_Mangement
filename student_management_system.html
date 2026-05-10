@@ -97,6 +97,13 @@
       justify-content: center;
     }
 
+    .logo-icon-img {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
     .logo-icon svg {
       width: 18px;
       height: 18px;
@@ -380,6 +387,11 @@
     .badge-red {
       background: var(--red-bg);
       color: var(--red);
+    }
+    .badge-gray {
+      background: var(--bg3);
+      color: var(--text2);
+      border: 1px solid var(--border);
     }
 
     .badge-amber {
@@ -981,11 +993,7 @@
   <aside class="sidebar">
     <div class="sidebar-logo">
       <div class="logo-mark">
-        <div class="logo-icon">
-          <svg viewBox="0 0 24 24">
-            <path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3zM5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z" />
-          </svg>
-        </div>
+        <img src="/img/logo.jpg" alt="Swami Abhyasika Logo" class="logo-icon-img">
         <div>
           <div class="logo-text">Swami Abhyasika</div>
           <div class="logo-sub">Management System</div>
@@ -1185,6 +1193,7 @@
                 <option value="Paid">Paid</option>
                 <option value="Pending">Pending</option>
                 <option value="Overdue">Overdue</option>
+                <option value="Inactive">Inactive</option>
               </select>
             </div>
           </div>
@@ -1317,6 +1326,7 @@
                 <option value="Pending">Pending</option>
                 <option value="Overdue">Overdue</option>
                 <option value="Paid">Paid</option>
+                <option value="Inactive">Inactive</option>
               </select>
             </div>
           </div>
@@ -1528,6 +1538,17 @@
     </div>
   </div>
 
+  <!-- STUDENT DETAILS MODAL -->
+  <div class="modal-overlay" id="student-details-modal">
+    <div class="modal" style="max-width: 600px;">
+      <div class="modal-header">
+        <div class="modal-title">Student Details</div>
+        <button class="close-btn" onclick="closeModal('student-details-modal')">×</button>
+      </div>
+      <div id="student-details-content" style="padding: 10px 0; font-size: 14px; line-height: 1.6;"></div>
+    </div>
+  </div>
+
   <!-- TOAST -->
   <div class="toast" id="toast">
     <div class="toast-dot" id="toast-dot"></div>
@@ -1560,12 +1581,16 @@
       if (rem <= 0) return 'Paid';
       const today = new Date();
       const due = s.dueDate ? new Date(s.dueDate) : null;
-      if (due && due < today) return 'Overdue';
+      if (due && due < today) {
+        const diffDays = (today.getTime() - due.getTime()) / (1000 * 60 * 60 * 24);
+        if (diffDays > 60) return 'Inactive';
+        return 'Overdue';
+      }
       return 'Pending';
     }
 
     function statusBadge(status) {
-      const map = { Paid: 'badge-green', Pending: 'badge-amber', Overdue: 'badge-red' };
+      const map = { Paid: 'badge-green', Pending: 'badge-amber', Overdue: 'badge-red', Inactive: 'badge-gray' };
       return `<span class="status-pill ${map[status] || 'badge-amber'}">${status}</span>`;
     }
 
@@ -1643,6 +1668,43 @@
       document.getElementById('f-admission-date').value = new Date().toISOString().split('T')[0];
     }
 
+    function showStudentDetails(id) {
+      const s = students.find(x => x.id === id);
+      if(!s) return;
+      const content = document.getElementById('student-details-content');
+      const rem = s.totalFees - s.paidFees;
+      const st = getStatus(s);
+      
+      let avatarHtml = `<div class="avatar" style="width:64px;height:64px;font-size:24px;background:var(--accent-bg);color:var(--accent)">${getInitials(s.name)}</div>`;
+      if (s.photo) {
+        avatarHtml = `<img src="${s.photo}" style="width:64px;height:64px;border-radius:50%;object-fit:cover;" />`;
+      }
+
+      content.innerHTML = `
+        <div style="display:flex; align-items:center; gap:16px; margin-bottom:20px;">
+          ${avatarHtml}
+          <div>
+            <h3 style="margin:0;font-size:18px;">${s.name}</h3>
+            <p style="margin:2px 0;color:var(--text2)">${s.id}</p>
+            ${statusBadge(st)}
+          </div>
+        </div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+          <div><strong>Course:</strong> ${s.course}</div>
+          <div><strong>Phone:</strong> ${s.phone}</div>
+          <div><strong>Email:</strong> ${s.email || 'N/A'}</div>
+          <div><strong>Admission Date:</strong> ${s.admissionDate || 'N/A'}</div>
+          <div><strong>Conditions:</strong> ${s.conditions || s.parentName || 'N/A'}</div>
+          <div><strong>Address:</strong> ${s.address || 'N/A'}</div>
+          <div><strong>Total Fees:</strong> ${formatCurrency(s.totalFees)}</div>
+          <div><strong>Paid Fees:</strong> ${formatCurrency(s.paidFees)}</div>
+          <div><strong>Remaining:</strong> <span style="color:var(--amber)">${formatCurrency(rem)}</span></div>
+          <div><strong>Due Date:</strong> ${s.dueDate || 'N/A'}</div>
+        </div>
+      `;
+      document.getElementById('student-details-modal').classList.add('active');
+    }
+
     function renderStudentTable() {
       const courseFilter = document.getElementById('filter-course').value;
       const statusFilter = document.getElementById('filter-status').value;
@@ -1656,12 +1718,20 @@
         return (!courseFilter || s.course === courseFilter) && (!statusFilter || st === statusFilter);
       });
 
+      filtered.sort((a, b) => {
+        const statA = getStatus(a);
+        const statB = getStatus(b);
+        if (statA === 'Inactive' && statB !== 'Inactive') return 1;
+        if (statA !== 'Inactive' && statB === 'Inactive') return -1;
+        return 0;
+      });
+
       const tbody = document.getElementById('student-table');
       if (!filtered.length) { tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--text3)">No students found.</td></tr>'; return; }
       tbody.innerHTML = filtered.map((s, i) => {
         const status = getStatus(s);
         const rem = s.totalFees - s.paidFees;
-        return `<tr>
+        return `<tr onclick="showStudentDetails('${s.id}')" style="cursor:pointer">
       <td><div class="student-cell">
         <div class="avatar" style="background:${getColor(i)}20;color:${getColor(i)}">${getInitials(s.name)}</div>
         <div><div class="student-name">${s.name}</div><div class="student-id">${s.id}</div></div>
