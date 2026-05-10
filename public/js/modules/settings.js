@@ -43,8 +43,8 @@ export async function addFeeTier() {
   const months = parseInt(document.getElementById('new-tier-months').value);
   const fee = parseFloat(document.getElementById('new-tier-fee').value);
 
-  if (!months || !fee) {
-    showToast('Please enter valid months and fee', 'red');
+  if (!months || months < 1 || !Number.isInteger(months) || !fee || fee <= 0) {
+    showToast('Please enter valid months (whole number ≥ 1) and fee (> 0)', 'red');
     return;
   }
 

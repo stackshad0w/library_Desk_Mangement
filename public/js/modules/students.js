@@ -134,7 +134,7 @@ export async function submitAdmission() {
   if (errors.length) return;
 
   try {
-    await api.post('/students', {
+    const payload = {
       name: nameEl.value.trim(),
       parent_name: document.getElementById('f-parent').value.trim(),
       phone: phoneEl.value.trim(),
@@ -147,15 +147,24 @@ export async function submitAdmission() {
       shift: document.getElementById('f-shift').value,
       admission_date: document.getElementById('f-admission-date').value || new Date().toISOString().split('T')[0],
       due_date: document.getElementById('f-due-date').value || null,
-    });
-    showToast('Student admitted successfully!', 'green');
+    };
+
+    const editingId = window.SwamiAbhyasika._editingId;
+    if (editingId) {
+      await api.put(`/students/${editingId}`, payload);
+      showToast('Student updated successfully!', 'green');
+    } else {
+      await api.post('/students', payload);
+      showToast('Student admitted successfully!', 'green');
+    }
     resetForm();
+    window.SwamiAbhyasika._editingId = null;
     window.SwamiAbhyasika.showPage('admissions');
   } catch (err) {
     if (err.data?.errors) {
       err.data.errors.forEach(e => showToast(`${e.field}: ${e.message}`, 'red'));
     } else {
-      showToast(err.message || 'Failed to add student', 'red');
+      showToast(err.message || 'Failed to save student', 'red');
     }
   }
 }

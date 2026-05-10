@@ -6,6 +6,7 @@ import { getFeeForMonths } from './settings.js';
 
 let payingStudentId = null;
 let payingStudentGender = 'Male';
+let payingStudentOriginalShift = 'Day';
 
 export async function renderFeeTable() {
   const filter = document.getElementById('fee-filter')?.value || '';
@@ -66,6 +67,7 @@ export async function openPaymentModal(id) {
     const shiftEl = document.getElementById('pay-shift');
     if (shiftEl) shiftEl.value = s.shift || 'Day';
     payingStudentGender = s.gender || 'Male';
+    payingStudentOriginalShift = s.shift || 'Day';
 
     document.getElementById('payment-modal').classList.add('open');
   } catch (err) {
@@ -89,8 +91,8 @@ export async function savePayment() {
   }
 
   try {
-    // 1. Update student shift if changed
-    if (shift) {
+    // 1. Update student shift only if changed
+    if (shift && shift !== payingStudentOriginalShift) {
       await api.put(`/students/${payingStudentId}`, { shift });
     }
 

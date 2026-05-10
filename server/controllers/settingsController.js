@@ -17,10 +17,39 @@ exports.getSettings = (req, res) => {
   }
 };
 
+const ALLOWED_SETTINGS_KEYS = ['fee_tiers'];
+
 exports.updateSetting = (req, res) => {
   const { key, value } = req.body;
   if (!key || value === undefined) {
     return res.status(400).json({ message: 'Key and value are required' });
+  }
+
+  if (!ALLOWED_SETTINGS_KEYS.includes(key)) {
+    return res.status(400).json({ message: `Unknown setting key: ${key}` });
+  }
+
+  // Validate fee_tiers structure
+  if (key === 'fee_tiers') {
+    if (!Array.isArray(value) || value.length === 0) {
+      return res.status(400).json({ message: 'fee_tiers must be a non-empty array' });
+    }
+    const validGenders = ['Male', 'Female', 'Other'];
+    const validShifts = ['Day', 'Night', 'Both'];
+    for (const tier of value) {
+      if (!tier.months || !Number.isInteger(tier.months) || tier.months < 1) {
+        return res.status(400).json({ message: 'Each tier must have a valid months value (integer >= 1)' });
+      }
+      if (!tier.fee || tier.fee <= 0) {
+        return res.status(400).json({ message: 'Each tier must have a positive fee value' });
+      }
+      if (tier.gender && !validGenders.includes(tier.gender)) {
+        return res.status(400).json({ message: `Invalid gender in tier: ${tier.gender}` });
+      }
+      if (tier.shift && !validShifts.includes(tier.shift)) {
+        return res.status(400).json({ message: `Invalid shift in tier: ${tier.shift}` });
+      }
+    }
   }
 
   try {

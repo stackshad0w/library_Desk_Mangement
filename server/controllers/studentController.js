@@ -93,6 +93,11 @@ function getById(req, res) {
 function create(req, res) {
   const { name, parent_name, phone, email, address, course, admission_date, due_date, total_fees, paid_fees, gender, shift } = req.body;
 
+  const validGenders = ['Male', 'Female', 'Other'];
+  const validShifts = ['Day', 'Night', 'Both'];
+  if (gender && !validGenders.includes(gender)) return res.status(400).json({ message: 'Invalid gender value' });
+  if (shift && !validShifts.includes(shift)) return res.status(400).json({ message: 'Invalid shift value' });
+
   const count = db.prepare('SELECT COUNT(*) as cnt FROM students').get().cnt;
   const id = generateStudentId(count);
 
@@ -152,6 +157,11 @@ function update(req, res) {
 
   const { name, parent_name, phone, email, address, course, admission_date, due_date, total_fees, status, gender, shift } = req.body;
 
+  const validGenders = ['Male', 'Female', 'Other'];
+  const validShifts = ['Day', 'Night', 'Both'];
+  if (gender && !validGenders.includes(gender)) return res.status(400).json({ message: 'Invalid gender value' });
+  if (shift && !validShifts.includes(shift)) return res.status(400).json({ message: 'Invalid shift value' });
+
   db.prepare(`
     UPDATE students SET
       name = COALESCE(?, name),
@@ -172,12 +182,12 @@ function update(req, res) {
     name ? sanitize(name) : null,
     parent_name ? sanitize(parent_name) : null,
     phone || null,
-    email || null,
+    email !== undefined ? email : null,
     address ? sanitize(address) : null,
     course || null,
     admission_date || null,
-    due_date || null,
-    total_fees || null,
+    due_date !== undefined ? due_date : null,
+    total_fees !== undefined && total_fees !== null ? total_fees : null,
     status || null,
     gender || null,
     shift || null,

@@ -146,7 +146,7 @@ function initialize(options = {}) {
   // Seed default fee tiers if missing
   const existingTiers = db.prepare('SELECT value FROM settings WHERE key = ?').get('fee_tiers');
   if (!existingTiers) {
-    db.prepare('INSERT INTO settings (key, value) VALUES (?, ?)').run('fee_tiers', JSON.stringify([{ months: 1, fee: 1000 }]));
+    db.prepare('INSERT INTO settings (key, value) VALUES (?, ?)').run('fee_tiers', JSON.stringify([{ gender: 'Male', shift: 'Day', months: 1, fee: 1000 }]));
   }
 
   // Auto-migrate schema if columns are missing

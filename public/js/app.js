@@ -1,11 +1,11 @@
 import { requireAuth, setupAuthUI, logout } from './modules/auth.js';
 import { renderDashboard } from './modules/dashboard.js';
-import { renderStudentTable, submitAdmission, resetForm, calcRemaining, deleteStudent, editStudent, goToPage, setFilter, debouncedSearch, showStudentDetails, toggleStudentStatus } from './modules/students.js';
+import { renderStudentTable, submitAdmission, resetForm, calcRemaining, deleteStudent, editStudent, goToPage, setFilter, debouncedSearch, showStudentDetails, toggleStudentStatus, autoUpdateAdmissionFee } from './modules/students.js';
 import { renderFeeTable, openPaymentModal, closeModal, savePayment, calcNextDueDate } from './modules/fees.js';
 import { customConfirm, closeConfirm } from './utils/helpers.js';
 import { renderReminders } from './modules/reminders.js';
 import { exportCSV, exportExcel, exportPDF } from './modules/export.js';
-import { renderSettings, addFeeTier, removeFeeTier, initSettings } from './modules/settings.js';
+import { renderSettings, addFeeTier, removeFeeTier, initSettings, getFeeForMonths } from './modules/settings.js';
 import { initToast, showToast } from './utils/toast.js';
 
 // Guard — redirect to login if not authenticated
@@ -83,6 +83,7 @@ window.SwamiAbhyasika = {
   addFeeTier,
   removeFeeTier,
   autoUpdateAdmissionFee,
+  getFeeForMonths,
   _editingId: null,
 };
 
