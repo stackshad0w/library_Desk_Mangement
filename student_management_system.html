@@ -1047,11 +1047,16 @@
       </div>
       <div class="nav-item" onclick="showPage('reminders',this)">
         <svg fill="currentColor" viewBox="0 0 24 24">
-          <path
-            d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z" />
+          <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z" />
         </svg>
         Reminders
         <span class="nav-badge" id="reminder-badge">0</span>
+      </div>
+      <div class="nav-item" onclick="showPage('settings',this)">
+        <svg fill="currentColor" viewBox="0 0 24 24">
+          <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
+        </svg>
+        Settings
       </div>
       <div class="nav-item" onclick="showPage('statistics',this)">
         <svg fill="currentColor" viewBox="0 0 24 24">
@@ -1365,6 +1370,27 @@
 
 
 
+      <!-- SETTINGS PAGE -->
+      <div class="page" id="page-settings">
+        <div class="form-card" style="max-width:600px">
+          <div class="form-section">
+            <div class="form-section-title">
+              <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg>
+              Fee Configuration (Monthly Packages)
+            </div>
+            <p style="font-size:13px; color:var(--text3); margin-bottom:20px;">Define the default fee for different durations. If a duration is not listed here, the system will use the 1-month rate multiplied by the number of months.</p>
+            
+            <div id="fee-tiers-list" style="display:flex; flex-direction:column; gap:12px; margin-bottom:24px;"></div>
+
+            <div style="display:flex; gap:12px; align-items:flex-end; padding:16px; background:var(--bg3); border-radius:var(--radius-sm);">
+              <div class="form-group"><label>Number of Months</label><input type="number" id="new-tier-months" placeholder="e.g. 3"></div>
+              <div class="form-group"><label>Total Fee (₹)</label><input type="number" id="new-tier-fee" placeholder="e.g. 2700"></div>
+              <button class="btn btn-primary" onclick="addFeeTier()">Add Package</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- EXPORT -->
       <div class="page" id="page-export">
         <div class="form-card" style="max-width:600px">
@@ -1607,6 +1633,51 @@
       }
     }
     let feeChart = null, courseChart = null;
+    let feeTiers = JSON.parse(localStorage.getItem('edu_fee_tiers') || '[{"months":1,"fee":1000}]');
+
+    function renderSettings() {
+      const list = document.getElementById('fee-tiers-list');
+      feeTiers.sort((a, b) => a.months - b.months);
+      list.innerHTML = feeTiers.map((tier, idx) => `
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 16px; background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius-sm);">
+          <div>
+            <span style="font-weight:600; font-size:14px;">${tier.months} Month${tier.months > 1 ? 's' : ''}</span>
+            <span style="color:var(--text3); margin:0 8px;">·</span>
+            <span style="color:var(--green); font-weight:500;">${formatCurrency(tier.fee)}</span>
+          </div>
+          <button class="icon-btn" onclick="removeFeeTier(${idx})" style="color:var(--red)">
+            <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+          </button>
+        </div>
+      `).join('');
+    }
+
+    function addFeeTier() {
+      const months = parseInt(document.getElementById('new-tier-months').value);
+      const fee = parseFloat(document.getElementById('new-tier-fee').value);
+      if (!months || !fee) return showToast('Invalid input', 'red');
+      const idx = feeTiers.findIndex(t => t.months === months);
+      if (idx > -1) feeTiers[idx].fee = fee;
+      else feeTiers.push({ months, fee });
+      localStorage.setItem('edu_fee_tiers', JSON.stringify(feeTiers));
+      showToast('Package updated', 'green');
+      renderSettings();
+    }
+
+    function removeFeeTier(idx) {
+      if (feeTiers[idx].months === 1) return showToast('Base rate required', 'red');
+      feeTiers.splice(idx, 1);
+      localStorage.setItem('edu_fee_tiers', JSON.stringify(feeTiers));
+      renderSettings();
+    }
+
+    function getFeeForMonths(months) {
+      const tier = feeTiers.find(t => t.months === months);
+      if (tier) return tier.fee;
+      const base = feeTiers.find(t => t.months === 1) || { fee: 1000 };
+      return base.fee * months;
+    }
+
 
     const avatarColors = ['#6c63ff', '#22c55e', '#f59e0b', '#ef4444', '#38bdf8', '#ec4899', '#14b8a6', '#f97316'];
 
@@ -1661,7 +1732,7 @@
         'admission-form': 'New Admission', fees: 'Fee Management',
         reminders: 'Reminders', export: 'Export Data',
         hubs: 'Global Network', memberships: 'My Memberships',
-        statistics: 'Statistics'
+        statistics: 'Statistics', settings: 'Settings'
       };
       document.getElementById('page-title').textContent = titles[id] || id;
 
@@ -1675,6 +1746,7 @@
       if (id === 'admissions') renderStudentTable();
       if (id === 'fees') renderFeeTable();
       if (id === 'reminders') renderReminders();
+      if (id === 'settings') renderSettings();
       if (id === 'admission-form') {
         document.getElementById('new-id').textContent = genId();
         document.getElementById('f-admission-date').value = new Date().toISOString().split('T')[0];
@@ -2084,6 +2156,11 @@
         const date = new Date(fromDateVal);
         date.setMonth(date.getMonth() + monthsVal);
         document.getElementById('pay-next-due-date').value = date.toISOString().split('T')[0];
+
+        // AUTO-CALCULATE FEE
+        const suggestedFee = getFeeForMonths(monthsVal);
+        const amountInput = document.getElementById('pay-amount');
+        if (amountInput) amountInput.value = suggestedFee;
       }
     }
 

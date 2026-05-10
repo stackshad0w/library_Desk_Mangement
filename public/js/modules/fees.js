@@ -2,6 +2,7 @@ import { api } from './api.js';
 import { showToast } from '../utils/toast.js';
 import { formatCurrency, getInitials, getColor, statusBadgeClass } from '../utils/helpers.js';
 import { PAYMENT_METHODS } from '../utils/constants.js';
+import { getFeeForMonths } from './settings.js';
 
 let payingStudentId = null;
 
@@ -137,5 +138,10 @@ export function calcNextDueDate() {
     const date = new Date(fromDateVal);
     date.setMonth(date.getMonth() + monthsVal);
     document.getElementById('pay-next-due-date').value = date.toISOString().split('T')[0];
+
+    // AUTO-CALCULATE FEE
+    const suggestedFee = getFeeForMonths(monthsVal);
+    const amountInput = document.getElementById('pay-amount');
+    if (amountInput) amountInput.value = suggestedFee;
   }
 }

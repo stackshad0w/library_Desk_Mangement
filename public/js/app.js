@@ -5,6 +5,7 @@ import { renderFeeTable, openPaymentModal, closeModal, savePayment, calcNextDueD
 import { customConfirm, closeConfirm } from './utils/helpers.js';
 import { renderReminders } from './modules/reminders.js';
 import { exportCSV, exportExcel, exportPDF } from './modules/export.js';
+import { renderSettings, addFeeTier, removeFeeTier, initSettings } from './modules/settings.js';
 import { initToast, showToast } from './utils/toast.js';
 
 // Guard — redirect to login if not authenticated
@@ -12,12 +13,12 @@ if (!requireAuth()) throw new Error('Not authenticated');
 
 initToast();
 setupAuthUI();
+initSettings();
 
 // Page navigation
 const titles = {
-  dashboard: 'Dashboard', admissions: 'All Students',
-  'admission-form': 'New Admission', fees: 'Fee Management',
-  reminders: 'Reminders', export: 'Export Data', statistics: 'Statistics'
+  reminders: 'Reminders', export: 'Export Data', statistics: 'Statistics',
+  settings: 'Settings'
 };
 
 function showPage(id) {
@@ -41,6 +42,7 @@ function showPage(id) {
   if (id === 'admissions') renderStudentTable();
   if (id === 'fees') renderFeeTable();
   if (id === 'reminders') renderReminders();
+  if (id === 'settings') renderSettings();
   if (id === 'admission-form') {
     document.getElementById('f-admission-date').value = new Date().toISOString().split('T')[0];
     window.SwamiAbhyasika._editingId = null;
@@ -72,14 +74,14 @@ window.SwamiAbhyasika = {
   closeModal,
   savePayment,
   calcNextDueDate,
-  exportCSV,
-  exportExcel,
   exportPDF,
   goToPage,
   setFilter,
   logout,
   customConfirm,
   closeConfirm,
+  addFeeTier,
+  removeFeeTier,
   _editingId: null,
 };
 

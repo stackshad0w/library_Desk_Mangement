@@ -124,6 +124,11 @@ function initialize(options = {}) {
       created_at TEXT DEFAULT (datetime('now'))
     );
 
+    CREATE TABLE IF NOT EXISTS settings (
+      key TEXT PRIMARY KEY,
+      value TEXT NOT NULL
+    );
+
     CREATE INDEX IF NOT EXISTS idx_students_course ON students(course);
     CREATE INDEX IF NOT EXISTS idx_students_status ON students(status);
     CREATE INDEX IF NOT EXISTS idx_students_name ON students(name);
@@ -135,6 +140,12 @@ function initialize(options = {}) {
     CREATE INDEX IF NOT EXISTS idx_sessions_token ON sessions(token);
     CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);
   `);
+
+  // Seed default fee tiers if missing
+  const existingTiers = db.prepare('SELECT value FROM settings WHERE key = ?').get('fee_tiers');
+  if (!existingTiers) {
+    db.prepare('INSERT INTO settings (key, value) VALUES (?, ?)').run('fee_tiers', JSON.stringify([{ months: 1, fee: 1000 }]));
+  }
 
   // Auto-migrate schema if columns are missing
   try { db.exec("ALTER TABLE payments ADD COLUMN from_date TEXT;"); } catch (e) {}
