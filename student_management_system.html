@@ -1595,12 +1595,12 @@
         confirmBtn.style.background = btnColor;
         confirmBtn.style.borderColor = btnColor;
         
-        document.getElementById('confirm-modal').classList.add('active');
+        document.getElementById('confirm-modal').classList.add('open');
       });
     }
 
     function closeConfirm(result) {
-      document.getElementById('confirm-modal').classList.remove('active');
+      document.getElementById('confirm-modal').classList.remove('open');
       if (_confirmResolve) {
         _confirmResolve(result);
         _confirmResolve = null;
@@ -1816,7 +1816,7 @@
           <div><strong>Due Date:</strong> ${s.dueDate || 'N/A'}</div>
         </div>
       `;
-      document.getElementById('student-details-modal').classList.add('active');
+      document.getElementById('student-details-modal').classList.add('open');
     }
 
     async function toggleStudentStatus(id, newStatus) {
@@ -1827,7 +1827,7 @@
         s.status = newStatus;
         save();
         showToast(`Student marked as ${newStatus}`);
-        document.getElementById('student-details-modal')?.classList.remove('active');
+        document.getElementById('student-details-modal')?.classList.remove('open');
         renderStudentTable();
       }
     }

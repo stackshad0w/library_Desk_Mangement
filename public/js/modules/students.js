@@ -251,7 +251,7 @@ export async function showStudentDetails(id) {
         <div><strong>Due Date:</strong> ${s.due_date || 'N/A'}</div>
       </div>
     `;
-    document.getElementById('student-details-modal').classList.add('active');
+    document.getElementById('student-details-modal').classList.add('open');
   } catch (err) {
     showToast('Failed to load student details', 'red');
   }
@@ -263,7 +263,7 @@ export async function toggleStudentStatus(id, status) {
   try {
     await api.put(`/students/${id}`, { status });
     showToast(`Student marked as ${status}`, 'green');
-    document.getElementById('student-details-modal')?.classList.remove('active');
+    document.getElementById('student-details-modal')?.classList.remove('open');
     renderStudentTable();
   } catch (err) {
     showToast('Failed to update status', 'red');

@@ -48,12 +48,12 @@ export function customConfirm(message, title = 'Confirm Action', btnText = 'Conf
     confirmBtn.style.background = btnColor;
     confirmBtn.style.borderColor = btnColor;
     
-    document.getElementById('confirm-modal').classList.add('active');
+    document.getElementById('confirm-modal').classList.add('open');
   });
 }
 
 export function closeConfirm(result) {
-  document.getElementById('confirm-modal').classList.remove('active');
+  document.getElementById('confirm-modal').classList.remove('open');
   if (window._confirmResolve) {
     window._confirmResolve(result);
     window._confirmResolve = null;
