@@ -1,26 +1,8 @@
 import { api } from './api.js';
 import { showToast } from '../utils/toast.js';
-import { formatCurrency, getInitials, getColor, statusBadgeClass } from '../utils/helpers.js';
+import { formatCurrency, getInitials, getColor, statusBadgeClass, getSubscriptionBalance } from '../utils/helpers.js';
 import { PAYMENT_METHODS } from '../utils/constants.js';
 import { getFeeForMonths } from './settings.js';
-
-function getSubscriptionBalance(s) {
-  const admDate = s.admission_date || s.admissionDate;
-  const dueDate = s.due_date || s.dueDate;
-  const totalFees = s.total_fees || s.totalFees || 0;
-  if (!admDate || !dueDate || !totalFees) return { balance: totalFees, elapsed: 0, totalMonths: 1, pct: 0, perMonth: totalFees };
-  const start = new Date(admDate);
-  const end = new Date(dueDate);
-  const today = new Date();
-  const totalMonths = Math.max(1, Math.round((end - start) / (30.44 * 24 * 60 * 60 * 1000)));
-  const perMonth = totalFees / totalMonths;
-  const msElapsed = Math.max(0, today - start);
-  const monthsElapsed = Math.min(totalMonths, Math.floor(msElapsed / (30.44 * 24 * 60 * 60 * 1000)));
-  const used = monthsElapsed * perMonth;
-  const balance = Math.max(0, Math.round(totalFees - used));
-  const pct = Math.min(100, Math.round((monthsElapsed / totalMonths) * 100));
-  return { balance, elapsed: monthsElapsed, totalMonths, pct, perMonth: Math.round(perMonth) };
-}
 
 let payingStudentId = null;
 let payingStudentGender = 'Male';

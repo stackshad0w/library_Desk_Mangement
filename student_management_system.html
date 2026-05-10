@@ -1952,6 +1952,32 @@
           <div><strong>Used:</strong> ${elapsed} of ${totalMonths} months</div>
           <div><strong>Due Date:</strong> ${s.dueDate || 'N/A'}</div>
         </div>
+        <div style="margin-top:24px;">
+          <h4 style="margin:0 0 12px 0;font-size:14px;color:var(--text);border-bottom:1px solid var(--border);padding-bottom:8px;">Payment History</h4>
+          ${(!s.payments || s.payments.length === 0) 
+            ? '<div style="color:var(--text3);font-size:13px;text-align:center;padding:12px;background:var(--bg3);border-radius:var(--radius);">No payments recorded yet.</div>' 
+            : `<div style="overflow-x:auto;"><table style="width:100%;font-size:13px;border-collapse:collapse;">
+                <thead>
+                  <tr style="text-align:left;color:var(--text2);border-bottom:1px solid var(--border);">
+                    <th style="padding:8px 4px;font-weight:500;">Date</th>
+                    <th style="padding:8px 4px;font-weight:500;">Amount</th>
+                    <th style="padding:8px 4px;font-weight:500;">Method</th>
+                    <th style="padding:8px 4px;font-weight:500;">Notes</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${s.payments.map(p => `
+                    <tr style="border-bottom:1px solid var(--border);">
+                      <td style="padding:8px 4px;">${p.date}</td>
+                      <td style="padding:8px 4px;color:var(--green);font-weight:500;">${formatCurrency(p.amount)}</td>
+                      <td style="padding:8px 4px;">${p.method}</td>
+                      <td style="padding:8px 4px;color:var(--text3);">${p.notes || '-'}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table></div>`
+          }
+        </div>
       `;
       document.getElementById('student-details-modal').classList.add('open');
     }

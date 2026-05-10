@@ -1,6 +1,6 @@
 import { api } from './api.js';
 import { showToast } from '../utils/toast.js';
-import { formatCurrency, getInitials, getColor, statusBadgeClass, debounce } from '../utils/helpers.js';
+import { formatCurrency, getInitials, getColor, statusBadgeClass, debounce, getSubscriptionBalance } from '../utils/helpers.js';
 import { ITEMS_PER_PAGE, COURSES } from '../utils/constants.js';
 import { validateRequired, validatePhone, validateEmail, validatePositiveNumber, showFieldError, clearAllErrors } from '../utils/validation.js';
 
@@ -226,7 +226,7 @@ export async function showStudentDetails(id) {
   try {
     const s = await api.get(`/students/${id}`);
     const content = document.getElementById('student-details-content');
-    const rem = Math.max(0, s.total_fees - s.paid_fees);
+    const { balance, elapsed, totalMonths, perMonth } = getSubscriptionBalance(s);
     
     let avatarHtml = `<div class="avatar" style="width:64px;height:64px;font-size:24px;background:var(--accent-bg);color:var(--accent)">${getInitials(s.name)}</div>`;
     if (s.photo) {
@@ -260,10 +260,37 @@ export async function showStudentDetails(id) {
         <div><strong>Admission Date:</strong> ${s.admission_date}</div>
         <div><strong>Conditions:</strong> ${s.conditions || s.parent_name || 'N/A'}</div>
         <div><strong>Address:</strong> ${s.address || 'N/A'}</div>
-        <div><strong>Total Fees:</strong> ${formatCurrency(s.total_fees)}</div>
-        <div><strong>Paid Fees:</strong> ${formatCurrency(s.paid_fees)}</div>
-        <div><strong>Remaining:</strong> <span style="color:var(--amber)">${formatCurrency(rem)}</span></div>
+        <div><strong>Subscription:</strong> ${formatCurrency(s.total_fees)}</div>
+        <div><strong>Monthly Rate:</strong> ${formatCurrency(perMonth)}/mo</div>
+        <div><strong>Balance:</strong> <span style="color:${balance > 0 ? 'var(--green)' : 'var(--amber)'}">${formatCurrency(balance)}</span></div>
+        <div><strong>Used:</strong> ${elapsed} of ${totalMonths} months</div>
         <div><strong>Due Date:</strong> ${s.due_date || 'N/A'}</div>
+      </div>
+      <div style="margin-top:24px;">
+        <h4 style="margin:0 0 12px 0;font-size:14px;color:var(--text);border-bottom:1px solid var(--border);padding-bottom:8px;">Payment History</h4>
+        ${(!s.payments || s.payments.length === 0) 
+          ? '<div style="color:var(--text3);font-size:13px;text-align:center;padding:12px;background:var(--bg3);border-radius:var(--radius);">No payments recorded yet.</div>' 
+          : `<div style="overflow-x:auto;"><table style="width:100%;font-size:13px;border-collapse:collapse;">
+              <thead>
+                <tr style="text-align:left;color:var(--text2);border-bottom:1px solid var(--border);">
+                  <th style="padding:8px 4px;font-weight:500;">Date</th>
+                  <th style="padding:8px 4px;font-weight:500;">Amount</th>
+                  <th style="padding:8px 4px;font-weight:500;">Method</th>
+                  <th style="padding:8px 4px;font-weight:500;">Notes</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${s.payments.map(p => `
+                  <tr style="border-bottom:1px solid var(--border);">
+                    <td style="padding:8px 4px;">${p.payment_date || p.date}</td>
+                    <td style="padding:8px 4px;color:var(--green);font-weight:500;">${formatCurrency(p.amount)}</td>
+                    <td style="padding:8px 4px;">${p.payment_method || p.method}</td>
+                    <td style="padding:8px 4px;color:var(--text3);">${p.notes || '-'}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table></div>`
+        }
       </div>
     `;
     document.getElementById('student-details-modal').classList.add('open');
