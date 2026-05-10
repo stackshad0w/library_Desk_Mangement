@@ -288,26 +288,31 @@ export async function toggleStudentStatus(id, status) {
 }
 
 export function autoUpdateAdmissionFee() {
-  const monthsEl = document.getElementById('f-months');
-  const months = monthsEl ? parseInt(monthsEl.value) || 1 : 1;
-  const gender = document.getElementById('f-gender')?.value || 'Male';
-  const shift = document.getElementById('f-shift')?.value || 'Day';
-  
-  if (window.SwamiAbhyasika.getFeeForMonths) {
-    const fee = window.SwamiAbhyasika.getFeeForMonths(months, gender, shift);
-    const totalEl = document.getElementById('f-total-fees');
-    if (totalEl) {
-      totalEl.value = fee;
-      calcRemaining();
+  try {
+    const monthsEl = document.getElementById('f-months');
+    const months = monthsEl ? parseInt(monthsEl.value) || 1 : 1;
+    const gender = document.getElementById('f-gender')?.value || 'Male';
+    const shift = document.getElementById('f-shift')?.value || 'Day';
+    
+    if (window.SwamiAbhyasika.getFeeForMonths) {
+      const fee = window.SwamiAbhyasika.getFeeForMonths(months, gender, shift);
+      const totalEl = document.getElementById('f-total-fees');
+      if (totalEl) {
+        totalEl.value = fee;
+        calcRemaining();
+      }
+      // Auto-calculate due date from admission date + months
+      const admDateEl = document.getElementById('f-admission-date');
+      const dueDateEl = document.getElementById('f-due-date');
+      if (dueDateEl) {
+        const admValue = (admDateEl && admDateEl.value) ? admDateEl.value : new Date().toISOString().split('T')[0];
+        const dueDate = new Date(admValue);
+        dueDate.setMonth(dueDate.getMonth() + months);
+        dueDateEl.value = dueDate.toISOString().split('T')[0];
+      }
     }
-    // Auto-calculate due date from admission date + months
-    const admDateEl = document.getElementById('f-admission-date');
-    const dueDateEl = document.getElementById('f-due-date');
-    if (admDateEl && admDateEl.value && dueDateEl) {
-      const dueDate = new Date(admDateEl.value);
-      dueDate.setMonth(dueDate.getMonth() + months);
-      dueDateEl.value = dueDate.toISOString().split('T')[0];
-    }
+  } catch(e) {
+    console.error('autoUpdateAdmissionFee error:', e);
   }
 }
 
