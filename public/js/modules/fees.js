@@ -5,6 +5,7 @@ import { PAYMENT_METHODS } from '../utils/constants.js';
 import { getFeeForMonths } from './settings.js';
 
 let payingStudentId = null;
+let payingStudentGender = 'Male';
 
 export async function renderFeeTable() {
   const filter = document.getElementById('fee-filter')?.value || '';
@@ -62,6 +63,10 @@ export async function openPaymentModal(id) {
     if (months) months.value = '';
     document.getElementById('pay-notes').value = '';
     document.getElementById('receipt-area').innerHTML = '';
+    const shiftEl = document.getElementById('pay-shift');
+    if (shiftEl) shiftEl.value = s.shift || 'Day';
+    payingStudentGender = s.gender || 'Male';
+
     document.getElementById('payment-modal').classList.add('open');
   } catch (err) {
     showToast('Failed to load student info', 'red');
@@ -74,15 +79,21 @@ export function closeModal(id) {
 
 export async function savePayment() {
   const amount = parseFloat(document.getElementById('pay-amount').value);
-  if (!amount || amount <= 0) { showToast('Enter a valid amount', 'red'); return; }
-
   const nextDueInput = document.getElementById('pay-next-due-date');
+  const shift = document.getElementById('pay-shift')?.value;
+  
+  if (!amount || amount <= 0) { showToast('Enter a valid amount', 'red'); return; }
   if (!nextDueInput || !nextDueInput.value) {
     showToast('Please specify Next Due Date or Months', 'red');
     return;
   }
 
   try {
+    // 1. Update student shift if changed
+    if (shift) {
+      await api.put(`/students/${payingStudentId}`, { shift });
+    }
+
     const payload = {
       student_id: payingStudentId,
       amount,
@@ -140,7 +151,8 @@ export function calcNextDueDate() {
     document.getElementById('pay-next-due-date').value = date.toISOString().split('T')[0];
 
     // AUTO-CALCULATE FEE
-    const suggestedFee = getFeeForMonths(monthsVal);
+    const shift = document.getElementById('pay-shift')?.value || 'Day';
+    const suggestedFee = getFeeForMonths(monthsVal, payingStudentGender, shift);
     const amountInput = document.getElementById('pay-amount');
     if (amountInput) amountInput.value = suggestedFee;
   }

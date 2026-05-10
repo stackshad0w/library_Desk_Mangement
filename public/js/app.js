@@ -82,6 +82,7 @@ window.SwamiAbhyasika = {
   closeConfirm,
   addFeeTier,
   removeFeeTier,
+  autoUpdateAdmissionFee,
   _editingId: null,
 };
 

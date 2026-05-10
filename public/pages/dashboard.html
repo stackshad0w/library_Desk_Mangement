@@ -112,10 +112,12 @@
               <!-- Tiers will be rendered here -->
             </div>
 
-            <div style="display:flex; gap:12px; align-items:flex-end; padding:16px; background:var(--bg3); border-radius:var(--radius-sm);">
-              <div class="form-group"><label>Number of Months</label><input type="number" id="new-tier-months" placeholder="e.g. 3"></div>
-              <div class="form-group"><label>Total Fee (₹)</label><input type="number" id="new-tier-fee" placeholder="e.g. 2700"></div>
-              <button class="btn btn-primary" onclick="window.SwamiAbhyasika.addFeeTier()">Add Package</button>
+            <div style="display:flex; flex-wrap:wrap; gap:12px; align-items:flex-end; padding:16px; background:var(--bg3); border-radius:var(--radius-sm);">
+              <div class="form-group" style="flex:1; min-width:100px;"><label>Gender</label><select id="new-tier-gender"><option value="Male">Male</option><option value="Female">Female</option></select></div>
+              <div class="form-group" style="flex:1; min-width:100px;"><label>Shift</label><select id="new-tier-shift"><option value="Day">Day</option><option value="Night">Night</option><option value="Both">Both</option></select></div>
+              <div class="form-group" style="flex:1; min-width:100px;"><label>Months</label><input type="number" id="new-tier-months" placeholder="e.g. 3"></div>
+              <div class="form-group" style="flex:1; min-width:120px;"><label>Total Fee (₹)</label><input type="number" id="new-tier-fee" placeholder="e.g. 2700"></div>
+              <button class="btn btn-primary" onclick="window.SwamiAbhyasika.addFeeTier()" style="height:42px;">Add Rule</button>
             </div>
           </div>
         </div>
@@ -170,6 +172,7 @@
               <div class="form-group"><label>Father / Mother Name</label><input type="text" id="f-parent" placeholder="Parent's name"></div>
               <div class="form-group"><label>Phone Number *</label><input type="tel" id="f-phone" placeholder="+91 XXXXX XXXXX"></div>
               <div class="form-group"><label>Email Address</label><input type="email" id="f-email" placeholder="email@example.com"></div>
+              <div class="form-group"><label>Gender</label><select id="f-gender"><option value="Male">Male</option><option value="Female">Female</option><option value="Other">Other</option></select></div>
               <div class="form-group full"><label>Address</label><textarea id="f-address" placeholder="Full address..."></textarea></div>
             </div>
           </div>
@@ -177,6 +180,7 @@
             <div class="form-section-title"><svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82zM12 3L1 9l11 6 9-4.91V17h2V9L12 3z"/></svg> Course & Fee Details</div>
             <div class="form-grid">
               <div class="form-group"><label>Course *</label><select id="f-course"><option value="">Select Course</option><option>UPSC MPSC</option><option>IIT JEE/MHT CET</option><option>MEDICAL</option><option>OTHER</option></select></div>
+              <div class="form-group"><label>Study Shift</label><select id="f-shift" onchange="window.SwamiAbhyasika.autoUpdateAdmissionFee()"><option value="Day">Day</option><option value="Night">Night</option><option value="Both">Both</option></select></div>
               <div class="form-group"><label>Total Fees (₹) *</label><input type="number" id="f-total-fees" placeholder="0" oninput="window.SwamiAbhyasika.calcRemaining()"></div>
               <div class="form-group"><label>Paid Amount (₹)</label><input type="number" id="f-paid" placeholder="0" oninput="window.SwamiAbhyasika.calcRemaining()"></div>
               <div class="form-group"><label>Remaining (₹)</label><input type="number" id="f-remaining" readonly style="color:var(--amber)"></div>
@@ -250,6 +254,7 @@
         <div class="form-group"><label>Payment Date</label><input type="date" id="pay-date"></div>
         <div class="form-group"><label>From Date</label><input type="date" id="pay-from-date" onchange="window.SwamiAbhyasika.calcNextDueDate()"></div>
         <div class="form-group"><label>Months</label><input type="number" id="pay-months" min="1" placeholder="e.g. 1" oninput="window.SwamiAbhyasika.calcNextDueDate()"></div>
+        <div class="form-group"><label>Subscription Shift</label><select id="pay-shift" onchange="window.SwamiAbhyasika.calcNextDueDate()"><option value="Day">Day</option><option value="Night">Night</option><option value="Both">Both</option></select></div>
         <div class="form-group"><label>Next Due Date</label><input type="date" id="pay-next-due-date"></div>
         <div class="form-group"><label>Payment Method</label><select id="pay-method"><option value="cash">Cash</option><option value="online_transfer">Online Transfer</option><option value="cheque">Cheque</option><option value="upi">UPI</option><option value="dd">DD</option></select></div>
         <div class="form-group"><label>Notes</label><input type="text" id="pay-notes" placeholder="Optional note"></div>

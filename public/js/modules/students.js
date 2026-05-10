@@ -143,6 +143,8 @@ export async function submitAdmission() {
       course: courseEl.value,
       total_fees: parseFloat(totalEl.value),
       paid_fees: parseFloat(document.getElementById('f-paid').value) || 0,
+      gender: document.getElementById('f-gender').value,
+      shift: document.getElementById('f-shift').value,
       admission_date: document.getElementById('f-admission-date').value || new Date().toISOString().split('T')[0],
       due_date: document.getElementById('f-due-date').value || null,
     });
@@ -159,9 +161,9 @@ export async function submitAdmission() {
 }
 
 export function resetForm() {
-  ['f-name','f-parent','f-phone','f-email','f-address','f-total-fees','f-paid','f-remaining','f-payment-date','f-due-date'].forEach(id => {
+  ['f-name','f-parent','f-phone','f-email','f-address','f-total-fees','f-paid','f-remaining','f-payment-date','f-due-date','f-gender','f-shift'].forEach(id => {
     const el = document.getElementById(id);
-    if (el) el.value = '';
+    if (el) el.value = (id === 'f-gender') ? 'Male' : (id === 'f-shift' ? 'Day' : '');
   });
   const courseEl = document.getElementById('f-course');
   if (courseEl) courseEl.value = '';
@@ -201,6 +203,8 @@ export async function editStudent(id) {
     document.getElementById('f-remaining').value = Math.max(0, s.total_fees - s.paid_fees);
     document.getElementById('f-admission-date').value = s.admission_date;
     document.getElementById('f-due-date').value = s.due_date || '';
+    document.getElementById('f-gender').value = s.gender || 'Male';
+    document.getElementById('f-shift').value = s.shift || 'Day';
     document.getElementById('new-id').textContent = s.id;
     window.SwamiAbhyasika._editingId = id;
     window.SwamiAbhyasika.showPage('admission-form');
@@ -239,6 +243,8 @@ export async function showStudentDetails(id) {
         </div>
       </div>
       <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+        <div><strong>Gender:</strong> ${s.gender || 'Male'}</div>
+        <div><strong>Study Shift:</strong> <span class="status-pill badge-purple">${s.shift || 'Day'}</span></div>
         <div><strong>Course:</strong> ${s.course}</div>
         <div><strong>Phone:</strong> ${s.phone}</div>
         <div><strong>Email:</strong> ${s.email || 'N/A'}</div>
@@ -269,3 +275,19 @@ export async function toggleStudentStatus(id, status) {
     showToast('Failed to update status', 'red');
   }
 }
+
+export function autoUpdateAdmissionFee() {
+  const months = 1; // Default for new admission
+  const gender = document.getElementById('f-gender')?.value || 'Male';
+  const shift = document.getElementById('f-shift')?.value || 'Day';
+  
+  if (window.SwamiAbhyasika.getFeeForMonths) {
+    const fee = window.SwamiAbhyasika.getFeeForMonths(months, gender, shift);
+    const totalEl = document.getElementById('f-total-fees');
+    if (totalEl) {
+      totalEl.value = fee;
+      calcRemaining();
+    }
+  }
+}
+

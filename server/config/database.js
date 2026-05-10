@@ -82,6 +82,8 @@ function initialize(options = {}) {
       due_date TEXT,
       total_fees REAL NOT NULL,
       paid_fees REAL DEFAULT 0,
+      gender TEXT CHECK(gender IN ('Male','Female','Other')),
+      shift TEXT CHECK(shift IN ('Day','Night','Both')),
       status TEXT CHECK(status IN ('active','inactive','graduated')) DEFAULT 'active',
       created_by TEXT REFERENCES users(id),
       created_at TEXT DEFAULT (datetime('now')),
@@ -150,6 +152,8 @@ function initialize(options = {}) {
   // Auto-migrate schema if columns are missing
   try { db.exec("ALTER TABLE payments ADD COLUMN from_date TEXT;"); } catch (e) {}
   try { db.exec("ALTER TABLE payments ADD COLUMN till_date TEXT;"); } catch (e) {}
+  try { db.exec("ALTER TABLE students ADD COLUMN gender TEXT;"); } catch (e) {}
+  try { db.exec("ALTER TABLE students ADD COLUMN shift TEXT;"); } catch (e) {}
 
   return seedDefaultAdmin ? ensureDefaultAdmin() : false;
 }

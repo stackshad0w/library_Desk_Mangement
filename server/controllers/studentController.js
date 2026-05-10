@@ -91,14 +91,14 @@ function getById(req, res) {
  * POST /api/students
  */
 function create(req, res) {
-  const { name, parent_name, phone, email, address, course, admission_date, due_date, total_fees, paid_fees } = req.body;
+  const { name, parent_name, phone, email, address, course, admission_date, due_date, total_fees, paid_fees, gender, shift } = req.body;
 
   const count = db.prepare('SELECT COUNT(*) as cnt FROM students').get().cnt;
   const id = generateStudentId(count);
 
   db.prepare(`
-    INSERT INTO students (id, name, parent_name, phone, email, address, course, admission_date, due_date, total_fees, paid_fees, created_by)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO students (id, name, parent_name, phone, email, address, course, admission_date, due_date, total_fees, paid_fees, gender, shift, created_by)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).run(
     id,
     sanitize(name),
@@ -111,6 +111,8 @@ function create(req, res) {
     due_date || null,
     total_fees,
     paid_fees || 0,
+    gender || 'Male',
+    shift || 'Day',
     req.user.id
   );
 
@@ -148,7 +150,7 @@ function update(req, res) {
     return res.status(404).json({ message: 'Student not found' });
   }
 
-  const { name, parent_name, phone, email, address, course, admission_date, due_date, total_fees, status } = req.body;
+  const { name, parent_name, phone, email, address, course, admission_date, due_date, total_fees, status, gender, shift } = req.body;
 
   db.prepare(`
     UPDATE students SET
@@ -162,6 +164,8 @@ function update(req, res) {
       due_date = COALESCE(?, due_date),
       total_fees = COALESCE(?, total_fees),
       status = COALESCE(?, status),
+      gender = COALESCE(?, gender),
+      shift = COALESCE(?, shift),
       updated_at = datetime('now')
     WHERE id = ?
   `).run(
@@ -175,6 +179,8 @@ function update(req, res) {
     due_date || null,
     total_fees || null,
     status || null,
+    gender || null,
+    shift || null,
     req.params.id
   );
 
