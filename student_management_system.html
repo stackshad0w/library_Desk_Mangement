@@ -1045,6 +1045,12 @@
         Reminders
         <span class="nav-badge" id="reminder-badge">0</span>
       </div>
+      <div class="nav-item" onclick="showPage('statistics',this)">
+        <svg fill="currentColor" viewBox="0 0 24 24">
+          <path d="M10 20h4V4h-4v16zm-6 0h4v-8H4v8zM16 9v11h4V9h-4z" />
+        </svg>
+        Statistics
+      </div>
       <div class="nav-section-label" style="margin-top:12px;">Tools</div>
       <div class="nav-item" onclick="showPage('export',this)">
         <svg fill="currentColor" viewBox="0 0 24 24">
@@ -1223,8 +1229,12 @@
                 <input type="text" id="f-name" placeholder="Enter full name">
               </div>
               <div class="form-group">
-                <label>Father / Mother Name *</label>
-                <input type="text" id="f-parent" placeholder="Enter parent's name">
+                <label>Student Photo</label>
+                <input type="file" id="f-photo" accept="image/*">
+              </div>
+              <div class="form-group">
+                <label>Conditions / Remarks</label>
+                <input type="text" id="f-conditions" placeholder="Enter conditions...">
               </div>
               <div class="form-group">
                 <label>Phone Number *</label>
@@ -1338,6 +1348,22 @@
           <button class="btn btn-primary" onclick="sendAllReminders()">Send All Reminders</button>
         </div>
         <div id="reminders-list"></div>
+      </div>
+
+      <!-- STATISTICS -->
+      <div class="page" id="page-statistics">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+          <div>
+            <h2 style="font-size:16px;font-weight:600;margin-bottom:4px">Statistics & Movement</h2>
+            <p style="font-size:13px;color:var(--text3)">Analyze data and know what things to move.</p>
+          </div>
+        </div>
+        <div class="empty-state">
+          <svg fill="currentColor" viewBox="0 0 24 24">
+            <path d="M10 20h4V4h-4v16zm-6 0h4v-8H4v8zM16 9v11h4V9h-4z" />
+          </svg>
+          <p>Advanced statistics and asset movement recommendations will appear here.</p>
+        </div>
       </div>
 
       <!-- EXPORT -->
@@ -1563,7 +1589,8 @@
         dashboard: 'Dashboard', admissions: 'All Students',
         'admission-form': 'New Admission', fees: 'Fee Management',
         reminders: 'Reminders', export: 'Export Data',
-        hubs: 'Global Network', memberships: 'My Memberships'
+        hubs: 'Global Network', memberships: 'My Memberships',
+        statistics: 'Statistics'
       };
       document.getElementById('page-title').textContent = titles[id] || id;
 
@@ -1598,7 +1625,8 @@
       const s = {
         id: genId(),
         name, phone,
-        parent: document.getElementById('f-parent').value.trim(),
+        photo: document.getElementById('f-photo').files.length ? document.getElementById('f-photo').files[0].name : '',
+        conditions: document.getElementById('f-conditions').value.trim(),
         email: document.getElementById('f-email').value.trim(),
         address: document.getElementById('f-address').value.trim(),
         course, totalFees: total,
@@ -1617,7 +1645,7 @@
     }
 
     function resetForm() {
-      ['f-name', 'f-parent', 'f-phone', 'f-email', 'f-address', 'f-total-fees', 'f-paid', 'f-remaining', 'f-payment-date', 'f-due-date'].forEach(id => {
+      ['f-name', 'f-photo', 'f-conditions', 'f-phone', 'f-email', 'f-address', 'f-total-fees', 'f-paid', 'f-remaining', 'f-payment-date', 'f-due-date'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.value = '';
       });
@@ -1887,8 +1915,8 @@
 
     function exportCSV() {
       if (!students.length) { showToast('No data to export', 'red'); return; }
-      const headers = ['ID', 'Name', 'Parent', 'Phone', 'Email', 'Course', 'Admission Date', 'Total Fees', 'Paid', 'Remaining', 'Due Date', 'Status'];
-      const rows = students.map(s => [s.id, s.name, s.parent, s.phone, s.email, s.course, s.admissionDate, s.totalFees, s.paidFees, Math.max(0, s.totalFees - s.paidFees), s.dueDate, getStatus(s)]);
+      const headers = ['ID', 'Name', 'Conditions', 'Photo', 'Phone', 'Email', 'Course', 'Admission Date', 'Total Fees', 'Paid', 'Remaining', 'Due Date', 'Status'];
+      const rows = students.map(s => [s.id, s.name, s.conditions, s.photo, s.phone, s.email, s.course, s.admissionDate, s.totalFees, s.paidFees, Math.max(0, s.totalFees - s.paidFees), s.dueDate, getStatus(s)]);
       const csv = [headers, ...rows].map(r => r.join(',')).join('\n');
       const a = document.createElement('a');
       a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
@@ -1900,7 +1928,7 @@
     function exportExcel() {
       if (!students.length) { showToast('No data to export', 'red'); return; }
       const data = students.map(s => ({
-        ID: s.id, Name: s.name, Parent: s.parent, Phone: s.phone, Email: s.email,
+        ID: s.id, Name: s.name, Conditions: s.conditions, Photo: s.photo, Phone: s.phone, Email: s.email,
         Course: s.course, 'Admission Date': s.admissionDate, 'Total Fees': s.totalFees,
         'Paid Fees': s.paidFees, Remaining: Math.max(0, s.totalFees - s.paidFees),
         'Due Date': s.dueDate, Status: getStatus(s)
