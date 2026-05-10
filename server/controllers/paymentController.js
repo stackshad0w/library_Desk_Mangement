@@ -6,7 +6,7 @@ const logger = require('../utils/logger');
  * POST /api/payments
  */
 function recordPayment(req, res) {
-  const { student_id, amount, payment_date, payment_method, notes, new_due_date } = req.body;
+  const { student_id, amount, payment_date, payment_method, notes, new_due_date, from_date } = req.body;
 
   const student = db.prepare('SELECT * FROM students WHERE id = ?').get(student_id);
   if (!student) {
@@ -22,9 +22,9 @@ function recordPayment(req, res) {
   const receiptNumber = generateReceiptNumber();
 
   db.prepare(`
-    INSERT INTO payments (id, student_id, amount, payment_date, payment_method, notes, receipt_number, processed_by)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-  `).run(paymentId, student_id, amount, payment_date, payment_method, notes || '', receiptNumber, req.user.id);
+    INSERT INTO payments (id, student_id, amount, payment_date, payment_method, notes, receipt_number, processed_by, from_date, till_date)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `).run(paymentId, student_id, amount, payment_date, payment_method, notes || '', receiptNumber, req.user.id, from_date || null, new_due_date || null);
 
   // Update student paid_fees and due_date
   if (new_due_date) {

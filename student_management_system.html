@@ -1516,6 +1516,10 @@
           <input type="date" id="pay-date">
         </div>
         <div class="form-group">
+          <label>From Date</label>
+          <input type="date" id="pay-from-date">
+        </div>
+        <div class="form-group">
           <label>Next Due Date</label>
           <input type="date" id="pay-next-due-date">
         </div>
@@ -1932,6 +1936,8 @@
       document.getElementById('pay-date').value = new Date().toISOString().split('T')[0];
       const nextDue = document.getElementById('pay-next-due-date');
       if (nextDue) nextDue.value = s.dueDate || '';
+      const fromDate = document.getElementById('pay-from-date');
+      if (fromDate) fromDate.value = '';
       document.getElementById('pay-notes').value = '';
       document.getElementById('receipt-area').innerHTML = '';
       document.getElementById('payment-modal').classList.add('open');
@@ -1947,6 +1953,7 @@
       const date = document.getElementById('pay-date').value;
       const notes = document.getElementById('pay-notes').value;
       const nextDue = document.getElementById('pay-next-due-date');
+      const fromDate = document.getElementById('pay-from-date');
       
       s.paidFees += amount;
       if (nextDue && nextDue.value) {
@@ -1954,7 +1961,7 @@
       }
       
       if (!s.payments) s.payments = [];
-      s.payments.push({ amount, date, method, notes });
+      s.payments.push({ amount, date, method, notes, fromDate: fromDate ? fromDate.value : null });
       save();
       showToast('Payment recorded!', 'green');
       generateReceipt(s, amount, date, method, notes);

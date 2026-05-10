@@ -94,6 +94,8 @@ function initialize(options = {}) {
       amount REAL NOT NULL,
       payment_date TEXT NOT NULL,
       payment_method TEXT CHECK(payment_method IN ('cash','online_transfer','cheque','upi','dd')) NOT NULL,
+      from_date TEXT,
+      till_date TEXT,
       notes TEXT,
       receipt_number TEXT UNIQUE,
       processed_by TEXT REFERENCES users(id),
@@ -133,6 +135,10 @@ function initialize(options = {}) {
     CREATE INDEX IF NOT EXISTS idx_sessions_token ON sessions(token);
     CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);
   `);
+
+  // Auto-migrate schema if columns are missing
+  try { db.exec("ALTER TABLE payments ADD COLUMN from_date TEXT;"); } catch (e) {}
+  try { db.exec("ALTER TABLE payments ADD COLUMN till_date TEXT;"); } catch (e) {}
 
   return seedDefaultAdmin ? ensureDefaultAdmin() : false;
 }

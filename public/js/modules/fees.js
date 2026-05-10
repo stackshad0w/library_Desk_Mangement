@@ -55,6 +55,8 @@ export async function openPaymentModal(id) {
     document.getElementById('pay-date').value = new Date().toISOString().split('T')[0];
     const nextDue = document.getElementById('pay-next-due-date');
     if (nextDue) nextDue.value = s.due_date || '';
+    const fromDate = document.getElementById('pay-from-date');
+    if (fromDate) fromDate.value = '';
     document.getElementById('pay-notes').value = '';
     document.getElementById('receipt-area').innerHTML = '';
     document.getElementById('payment-modal').classList.add('open');
@@ -83,6 +85,10 @@ export async function savePayment() {
     const nextDue = document.getElementById('pay-next-due-date');
     if (nextDue && nextDue.value) {
       payload.new_due_date = nextDue.value;
+    }
+    const fromDate = document.getElementById('pay-from-date');
+    if (fromDate && fromDate.value) {
+      payload.from_date = fromDate.value;
     }
 
     const data = await api.post('/payments', payload);
