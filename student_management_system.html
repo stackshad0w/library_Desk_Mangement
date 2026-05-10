@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EduTrack — Student Management System</title>
+  <title>Swami Abhyasika — Student Management System</title>
   <link
     href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:wght@300;400;500&display=swap"
     rel="stylesheet">
@@ -987,7 +987,7 @@
           </svg>
         </div>
         <div>
-          <div class="logo-text">EduTrack</div>
+          <div class="logo-text">Swami Abhyasika</div>
           <div class="logo-sub">Management System</div>
         </div>
       </div>
@@ -1869,7 +1869,7 @@
     <div class="receipt">
       <div class="receipt-header">
         <div>
-          <div class="receipt-logo">EduTrack</div>
+          <div class="receipt-logo">Swami Abhyasika</div>
           <div class="receipt-title">Fee Receipt</div>
         </div>
         <div style="text-align:right;font-size:12px;color:var(--text3)">
@@ -1936,7 +1936,7 @@
       const ws = XLSX.utils.json_to_sheet(data);
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, 'Students');
-      XLSX.writeFile(wb, 'EduTrack_Students.xlsx');
+      XLSX.writeFile(wb, 'SwamiAbhyasika_Students.xlsx');
       showToast('Excel exported!', 'green');
     }
 
@@ -1945,7 +1945,7 @@
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF({ orientation: 'landscape' });
       doc.setFontSize(18);
-      doc.text('EduTrack — Student Report', 14, 18);
+      doc.text('Swami Abhyasika — Student Report', 14, 18);
       doc.setFontSize(10);
       doc.text('Generated: ' + new Date().toLocaleDateString(), 14, 25);
       let y = 35;
@@ -1967,7 +1967,7 @@
         row.forEach((cell, i) => { doc.text(String(cell), x, y); x += colWidths[i]; });
         y += 9;
       });
-      doc.save('EduTrack_Report.pdf');
+      doc.save('SwamiAbhyasika_Report.pdf');
       showToast('PDF exported!', 'green');
     }
 

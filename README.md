@@ -1,6 +1,6 @@
-# EduTrack - Student Management System
+# Swami Abhyasika - Student Management System
 
-EduTrack is a modern, full-stack student management application designed to handle admissions, track fee payments, and generate analytics. Initially built as a single-file application, it has been completely refactored into a scalable, secure Node.js + SQLite architecture.
+Swami Abhyasika is a modern, full-stack student management application designed to handle admissions, track fee payments, and generate analytics. Initially built as a single-file application, it has been completely refactored into a scalable, secure Node.js + SQLite architecture.
 
 ![Dashboard Preview](docs/dashboard_preview.png)
 

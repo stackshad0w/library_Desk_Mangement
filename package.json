@@ -1,7 +1,7 @@
 {
-  "name": "edutrack",
+  "name": "swami-abhyasika",
   "version": "1.0.0",
-  "description": "EduTrack - Student Management System",
+  "description": "Swami Abhyasika - Student Management System",
   "main": "server/index.js",
   "engines": {
     "node": ">=22.13.0"

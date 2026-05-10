@@ -1,7 +1,7 @@
 /**
  * Migration Script: localStorage → SQLite
  * 
- * Reads the old EduTrack localStorage JSON format and imports all students
+ * Reads the old Swami Abhyasika localStorage JSON format and imports all students
  * and their payment history into the new SQLite database.
  * 
  * Usage:

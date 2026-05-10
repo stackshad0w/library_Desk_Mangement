@@ -86,8 +86,8 @@ app.use(errorHandler);
 
 if (require.main === module) {
   app.listen(PORT, () => {
-    logger.info(`EduTrack server running on http://localhost:${PORT}`);
-    console.log(`\nEduTrack server running at http://localhost:${PORT}\n`);
+    logger.info(`Swami Abhyasika server running on http://localhost:${PORT}`);
+    console.log(`\nSwami Abhyasika server running at http://localhost:${PORT}\n`);
   });
 }
 

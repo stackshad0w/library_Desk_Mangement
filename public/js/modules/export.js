@@ -21,7 +21,7 @@ export async function exportExcel() {
     const ws = XLSX.utils.json_to_sheet(mapped);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Students');
-    XLSX.writeFile(wb, 'EduTrack_Students.xlsx');
+    XLSX.writeFile(wb, 'SwamiAbhyasika_Students.xlsx');
     showToast('Excel exported!', 'green');
   } catch { showToast('Export failed', 'red'); }
 }
@@ -32,7 +32,7 @@ export async function exportPDF() {
     if (!data.students.length) { showToast('No data to export', 'red'); return; }
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({ orientation: 'landscape' });
-    doc.setFontSize(18); doc.text('EduTrack — Student Report', 14, 18);
+    doc.setFontSize(18); doc.text('Swami Abhyasika — Student Report', 14, 18);
     doc.setFontSize(10); doc.text('Generated: ' + new Date().toLocaleDateString(), 14, 25);
     let y = 35;
     const headers = ['ID','Name','Course','Phone','Total','Paid','Remaining','Status'];
@@ -48,7 +48,7 @@ export async function exportPDF() {
       const row = [s.id, s.name.slice(0,20), s.course.slice(0,22), s.phone, '₹'+s.total_fees, '₹'+s.paid_fees, '₹'+s.remaining_fees, s.status];
       x = 14; row.forEach((cell,i) => { doc.text(String(cell), x, y); x += colWidths[i]; }); y += 9;
     });
-    doc.save('EduTrack_Report.pdf');
+    doc.save('SwamiAbhyasika_Report.pdf');
     showToast('PDF exported!', 'green');
   } catch { showToast('Export failed', 'red'); }
 }

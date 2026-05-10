@@ -1,4 +1,4 @@
-export const APP_NAME = 'EduTrack';
+export const APP_NAME = 'Swami Abhyasika';
 export const API_BASE = '/api';
 export const ITEMS_PER_PAGE = 20;
 export const AVATAR_COLORS = ['#6c63ff', '#22c55e', '#f59e0b', '#ef4444', '#38bdf8', '#ec4899', '#14b8a6', '#f97316'];

@@ -42,7 +42,7 @@ function showPage(id) {
   if (id === 'reminders') renderReminders();
   if (id === 'admission-form') {
     document.getElementById('f-admission-date').value = new Date().toISOString().split('T')[0];
-    window.EduTrack._editingId = null;
+    window.SwamiAbhyasika._editingId = null;
   }
 }
 
@@ -58,7 +58,7 @@ if (searchInput) {
 }
 
 // Expose functions globally for onclick handlers in dynamic HTML
-window.EduTrack = {
+window.SwamiAbhyasika = {
   showPage,
   submitAdmission,
   resetForm,

@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard — EduTrack</title>
-  <meta name="description" content="EduTrack Student Management Dashboard">
+  <title>Dashboard — Swami Abhyasika</title>
+  <meta name="description" content="Swami Abhyasika Student Management Dashboard">
   <link rel="stylesheet" href="/css/variables.css">
   <link rel="stylesheet" href="/css/global.css">
   <link rel="stylesheet" href="/css/components.css">
@@ -20,7 +20,7 @@
     <div class="sidebar-logo">
       <div class="logo-mark">
         <div class="logo-icon"><svg viewBox="0 0 24 24"><path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3zM5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z"/></svg></div>
-        <div><div class="logo-text">EduTrack</div><div class="logo-sub">Management System</div></div>
+        <div><div class="logo-text">Swami Abhyasika</div><div class="logo-sub">Management System</div></div>
       </div>
     </div>
     <nav class="nav">
@@ -73,7 +73,7 @@
           <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
           <input type="text" placeholder="Search students..." id="global-search">
         </div>
-        <button class="btn btn-primary" onclick="window.EduTrack.showPage('admission-form')">
+        <button class="btn btn-primary" onclick="window.SwamiAbhyasika.showPage('admission-form')">
           <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
           New Student
         </button>
@@ -137,16 +137,16 @@
             <div class="form-section-title"><svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82zM12 3L1 9l11 6 9-4.91V17h2V9L12 3z"/></svg> Course & Fee Details</div>
             <div class="form-grid">
               <div class="form-group"><label>Course *</label><select id="f-course"><option value="">Select Course</option><option>B.Tech Computer Science</option><option>B.Tech Electronics</option><option>BCA</option><option>MCA</option><option>MBA</option><option>B.Sc Mathematics</option><option>B.Com</option><option>B.A English</option><option>Diploma Engineering</option><option>Other</option></select></div>
-              <div class="form-group"><label>Total Fees (₹) *</label><input type="number" id="f-total-fees" placeholder="0" oninput="window.EduTrack.calcRemaining()"></div>
-              <div class="form-group"><label>Paid Amount (₹)</label><input type="number" id="f-paid" placeholder="0" oninput="window.EduTrack.calcRemaining()"></div>
+              <div class="form-group"><label>Total Fees (₹) *</label><input type="number" id="f-total-fees" placeholder="0" oninput="window.SwamiAbhyasika.calcRemaining()"></div>
+              <div class="form-group"><label>Paid Amount (₹)</label><input type="number" id="f-paid" placeholder="0" oninput="window.SwamiAbhyasika.calcRemaining()"></div>
               <div class="form-group"><label>Remaining (₹)</label><input type="number" id="f-remaining" readonly style="color:var(--amber)"></div>
               <div class="form-group"><label>Payment Date</label><input type="date" id="f-payment-date"></div>
               <div class="form-group"><label>Fee Due Date</label><input type="date" id="f-due-date"></div>
             </div>
           </div>
           <div class="form-actions">
-            <button class="btn btn-ghost" onclick="window.EduTrack.resetForm()">Clear</button>
-            <button class="btn btn-primary" onclick="window.EduTrack.submitAdmission()">Save Student</button>
+            <button class="btn btn-ghost" onclick="window.SwamiAbhyasika.resetForm()">Clear</button>
+            <button class="btn btn-primary" onclick="window.SwamiAbhyasika.submitAdmission()">Save Student</button>
           </div>
         </div>
       </div>
@@ -181,15 +181,15 @@
           <div style="display:grid;gap:12px">
             <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:20px;display:flex;align-items:center;justify-content:space-between">
               <div><div style="font-weight:500;margin-bottom:4px">Excel (.xlsx)</div><div style="font-size:12px;color:var(--text3)">Full data with fee details</div></div>
-              <button class="btn btn-success" onclick="window.EduTrack.exportExcel()">Download</button>
+              <button class="btn btn-success" onclick="window.SwamiAbhyasika.exportExcel()">Download</button>
             </div>
             <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:20px;display:flex;align-items:center;justify-content:space-between">
               <div><div style="font-weight:500;margin-bottom:4px">PDF Report</div><div style="font-size:12px;color:var(--text3)">Formatted for printing</div></div>
-              <button class="btn btn-danger" onclick="window.EduTrack.exportPDF()">Download</button>
+              <button class="btn btn-danger" onclick="window.SwamiAbhyasika.exportPDF()">Download</button>
             </div>
             <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:20px;display:flex;align-items:center;justify-content:space-between">
               <div><div style="font-weight:500;margin-bottom:4px">CSV File</div><div style="font-size:12px;color:var(--text3)">Raw data for spreadsheets</div></div>
-              <button class="btn btn-ghost" onclick="window.EduTrack.exportCSV()">Download</button>
+              <button class="btn btn-ghost" onclick="window.SwamiAbhyasika.exportCSV()">Download</button>
             </div>
           </div>
         </div>
@@ -202,7 +202,7 @@
     <div class="modal">
       <div class="modal-header">
         <div class="modal-title">Record Payment</div>
-        <button class="close-btn" onclick="window.EduTrack.closeModal('payment-modal')">×</button>
+        <button class="close-btn" onclick="window.SwamiAbhyasika.closeModal('payment-modal')">×</button>
       </div>
       <div id="payment-student-info" style="margin-bottom:16px;padding:12px;background:var(--bg3);border-radius:var(--radius-sm);font-size:13px"></div>
       <div class="form-grid">
@@ -212,8 +212,8 @@
         <div class="form-group"><label>Notes</label><input type="text" id="pay-notes" placeholder="Optional note"></div>
       </div>
       <div class="form-actions">
-        <button class="btn btn-ghost" onclick="window.EduTrack.closeModal('payment-modal')">Cancel</button>
-        <button class="btn btn-primary" onclick="window.EduTrack.savePayment()">Record Payment</button>
+        <button class="btn btn-ghost" onclick="window.SwamiAbhyasika.closeModal('payment-modal')">Cancel</button>
+        <button class="btn btn-primary" onclick="window.SwamiAbhyasika.savePayment()">Record Payment</button>
       </div>
       <div id="receipt-area"></div>
     </div>

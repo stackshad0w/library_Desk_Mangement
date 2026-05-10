@@ -36,7 +36,7 @@ export async function renderFeeTable() {
         <td style="min-width:100px"><div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${barColor}"></div></div><div style="font-size:11px;color:var(--text3);margin-top:3px">${pct}%</div></td>
         <td style="font-size:12px;color:var(--text3)">${s.due_date || '—'}</td>
         <td><span class="status-pill ${statusBadgeClass(s.fee_status)}">${s.fee_status}</span></td>
-        <td><button class="btn btn-ghost" style="font-size:11px;padding:5px 10px" onclick="window.EduTrack.openPaymentModal('${s.id}')">Pay</button></td>
+        <td><button class="btn btn-ghost" style="font-size:11px;padding:5px 10px" onclick="window.SwamiAbhyasika.openPaymentModal('${s.id}')">Pay</button></td>
       </tr>`;
     }).join('');
   } catch (err) {
@@ -90,7 +90,7 @@ function generateReceipt(r) {
   document.getElementById('receipt-area').innerHTML = `
     <div class="receipt">
       <div class="receipt-header">
-        <div><div class="receipt-logo">EduTrack</div><div class="receipt-title">Fee Receipt</div></div>
+        <div><div class="receipt-logo">Swami Abhyasika</div><div class="receipt-title">Fee Receipt</div></div>
         <div style="text-align:right;font-size:12px;color:var(--text3)">
           <div style="font-weight:600;color:var(--text)">${r.receiptNumber}</div>
           <div>${r.date}</div>

@@ -50,13 +50,13 @@ export async function renderStudentTable() {
         <td style="color:var(--amber)">${formatCurrency(rem)}</td>
         <td><span class="status-pill ${statusBadgeClass(s.fee_status)}">${s.fee_status}</span></td>
         <td><div class="action-btns">
-          <button class="icon-btn" onclick="window.EduTrack.openPaymentModal('${s.id}')" title="Record Payment">
+          <button class="icon-btn" onclick="window.SwamiAbhyasika.openPaymentModal('${s.id}')" title="Record Payment">
             <svg fill="currentColor" viewBox="0 0 24 24"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg>
           </button>
-          <button class="icon-btn" onclick="window.EduTrack.editStudent('${s.id}')" title="Edit">
+          <button class="icon-btn" onclick="window.SwamiAbhyasika.editStudent('${s.id}')" title="Edit">
             <svg fill="currentColor" viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
           </button>
-          <button class="icon-btn" onclick="window.EduTrack.deleteStudent('${s.id}')" title="Delete" style="color:var(--red)">
+          <button class="icon-btn" onclick="window.SwamiAbhyasika.deleteStudent('${s.id}')" title="Delete" style="color:var(--red)">
             <svg fill="currentColor" viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
           </button>
         </div></td>
@@ -86,12 +86,12 @@ function renderPagination(pagination) {
   const { page, totalPages, total } = pagination;
   if (totalPages <= 1) { container.innerHTML = ''; return; }
 
-  let html = `<button ${page <= 1 ? 'disabled' : ''} onclick="window.EduTrack.goToPage(${page - 1})">← Prev</button>`;
+  let html = `<button ${page <= 1 ? 'disabled' : ''} onclick="window.SwamiAbhyasika.goToPage(${page - 1})">← Prev</button>`;
   for (let i = 1; i <= Math.min(totalPages, 5); i++) {
-    html += `<button class="${i === page ? 'active' : ''}" onclick="window.EduTrack.goToPage(${i})">${i}</button>`;
+    html += `<button class="${i === page ? 'active' : ''}" onclick="window.SwamiAbhyasika.goToPage(${i})">${i}</button>`;
   }
   if (totalPages > 5) html += `<span class="pagination-info">... ${totalPages}</span>`;
-  html += `<button ${page >= totalPages ? 'disabled' : ''} onclick="window.EduTrack.goToPage(${page + 1})">Next →</button>`;
+  html += `<button ${page >= totalPages ? 'disabled' : ''} onclick="window.SwamiAbhyasika.goToPage(${page + 1})">Next →</button>`;
   html += `<span class="pagination-info">${total} total</span>`;
   container.innerHTML = html;
 }
@@ -144,7 +144,7 @@ export async function submitAdmission() {
     });
     showToast('Student admitted successfully!', 'green');
     resetForm();
-    window.EduTrack.showPage('admissions');
+    window.SwamiAbhyasika.showPage('admissions');
   } catch (err) {
     if (err.data?.errors) {
       err.data.errors.forEach(e => showToast(`${e.field}: ${e.message}`, 'red'));
@@ -196,8 +196,8 @@ export async function editStudent(id) {
     document.getElementById('f-admission-date').value = s.admission_date;
     document.getElementById('f-due-date').value = s.due_date || '';
     document.getElementById('new-id').textContent = s.id;
-    window.EduTrack._editingId = id;
-    window.EduTrack.showPage('admission-form');
+    window.SwamiAbhyasika._editingId = id;
+    window.SwamiAbhyasika.showPage('admission-form');
   } catch (err) {
     showToast('Failed to load student data', 'red');
   }
