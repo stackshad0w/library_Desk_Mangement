@@ -56,6 +56,10 @@ export async function renderStudentTable() {
           <button class="icon-btn" onclick="event.stopPropagation(); window.SwamiAbhyasika.editStudent('${s.id}')" title="Edit">
             <svg fill="currentColor" viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
           </button>
+          ${s.status === 'inactive' 
+            ? `<button class="icon-btn" onclick="event.stopPropagation(); window.SwamiAbhyasika.toggleStudentStatus('${s.id}', 'active')" title="Reactivate" style="color:var(--green)"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M13 3h-2v10h2V3zm4.83 2.17l-1.42 1.42C17.99 7.86 19 9.81 19 12c0 3.87-3.13 7-7 7s-7-3.13-7-7c0-2.19 1.01-4.14 2.58-5.42L6.17 5.17C4.23 6.82 3 9.26 3 12c0 4.97 4.03 9 9 9s9-4.03 9-9c0-2.74-1.23-5.18-3.17-6.83z"/></svg></button>`
+            : `<button class="icon-btn" onclick="event.stopPropagation(); window.SwamiAbhyasika.toggleStudentStatus('${s.id}', 'inactive')" title="Deactivate" style="color:var(--amber)"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M13 3h-2v10h2V3zm4.83 2.17l-1.42 1.42C17.99 7.86 19 9.81 19 12c0 3.87-3.13 7-7 7s-7-3.13-7-7c0-2.19 1.01-4.14 2.58-5.42L6.17 5.17C4.23 6.82 3 9.26 3 12c0 4.97 4.03 9 9 9s9-4.03 9-9c0-2.74-1.23-5.18-3.17-6.83z"/></svg></button>`
+          }
           <button class="icon-btn" onclick="event.stopPropagation(); window.SwamiAbhyasika.deleteStudent('${s.id}')" title="Delete" style="color:var(--red)">
             <svg fill="currentColor" viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
           </button>
