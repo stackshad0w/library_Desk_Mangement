@@ -6,7 +6,7 @@ const logger = require('../utils/logger');
  * POST /api/payments
  */
 function recordPayment(req, res) {
-  const { student_id, amount, payment_date, payment_method, notes } = req.body;
+  const { student_id, amount, payment_date, payment_method, notes, new_due_date } = req.body;
 
   const student = db.prepare('SELECT * FROM students WHERE id = ?').get(student_id);
   if (!student) {
@@ -26,9 +26,14 @@ function recordPayment(req, res) {
     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
   `).run(paymentId, student_id, amount, payment_date, payment_method, notes || '', receiptNumber, req.user.id);
 
-  // Update student paid_fees
-  db.prepare('UPDATE students SET paid_fees = paid_fees + ?, updated_at = datetime(\'now\') WHERE id = ?')
-    .run(amount, student_id);
+  // Update student paid_fees and due_date
+  if (new_due_date) {
+    db.prepare('UPDATE students SET paid_fees = paid_fees + ?, due_date = ?, updated_at = datetime(\'now\') WHERE id = ?')
+      .run(amount, new_due_date, student_id);
+  } else {
+    db.prepare('UPDATE students SET paid_fees = paid_fees + ?, updated_at = datetime(\'now\') WHERE id = ?')
+      .run(amount, student_id);
+  }
 
   // Audit log
   db.prepare(`

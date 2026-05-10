@@ -1,6 +1,6 @@
 import { requireAuth, setupAuthUI, logout } from './modules/auth.js';
 import { renderDashboard } from './modules/dashboard.js';
-import { renderStudentTable, submitAdmission, resetForm, calcRemaining, deleteStudent, editStudent, goToPage, setFilter, debouncedSearch, showStudentDetails } from './modules/students.js';
+import { renderStudentTable, submitAdmission, resetForm, calcRemaining, deleteStudent, editStudent, goToPage, setFilter, debouncedSearch, showStudentDetails, toggleStudentStatus } from './modules/students.js';
 import { renderFeeTable, openPaymentModal, closeModal, savePayment } from './modules/fees.js';
 import { renderReminders } from './modules/reminders.js';
 import { exportCSV, exportExcel, exportPDF } from './modules/export.js';
@@ -66,6 +66,7 @@ window.SwamiAbhyasika = {
   deleteStudent,
   editStudent,
   showStudentDetails,
+  toggleStudentStatus,
   openPaymentModal,
   closeModal,
   savePayment,

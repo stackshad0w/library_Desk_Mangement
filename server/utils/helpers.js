@@ -38,16 +38,24 @@ function generateId() {
  * Calculate fee status for a student
  */
 function getFeeStatus(student) {
+  if (student.status === 'inactive') return 'Inactive';
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  if (student.due_date) {
+    const due = new Date(student.due_date);
+    due.setHours(0, 0, 0, 0);
+    if (due < today) {
+      const diffDays = (today.getTime() - due.getTime()) / (1000 * 60 * 60 * 24);
+      if (diffDays > 60) return 'Inactive';
+      return 'Overdue';
+    }
+  }
+
   const remaining = student.total_fees - student.paid_fees;
   if (remaining <= 0) return 'Paid';
-  const today = new Date();
-  const due = student.due_date ? new Date(student.due_date) : null;
-  if (due && due < today) {
-    const diffTime = today.getTime() - due.getTime();
-    const diffDays = diffTime / (1000 * 60 * 60 * 24);
-    if (diffDays > 60) return 'Inactive';
-    return 'Overdue';
-  }
+  
   return 'Pending';
 }
 

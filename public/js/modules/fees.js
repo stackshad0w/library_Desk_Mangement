@@ -53,6 +53,8 @@ export async function openPaymentModal(id) {
       `<strong>${s.name}</strong> (${s.id}) · ${s.course}<br>Total: ${formatCurrency(s.total_fees)} · Paid: ${formatCurrency(s.paid_fees)} · <span style="color:var(--amber)">Remaining: ${formatCurrency(rem)}</span>`;
     document.getElementById('pay-amount').value = '';
     document.getElementById('pay-date').value = new Date().toISOString().split('T')[0];
+    const nextDue = document.getElementById('pay-next-due-date');
+    if (nextDue) nextDue.value = s.due_date || '';
     document.getElementById('pay-notes').value = '';
     document.getElementById('receipt-area').innerHTML = '';
     document.getElementById('payment-modal').classList.add('open');
@@ -70,13 +72,20 @@ export async function savePayment() {
   if (!amount || amount <= 0) { showToast('Enter a valid amount', 'red'); return; }
 
   try {
-    const data = await api.post('/payments', {
+    const payload = {
       student_id: payingStudentId,
       amount,
       payment_date: document.getElementById('pay-date').value,
       payment_method: document.getElementById('pay-method').value,
       notes: document.getElementById('pay-notes').value,
-    });
+    };
+    
+    const nextDue = document.getElementById('pay-next-due-date');
+    if (nextDue && nextDue.value) {
+      payload.new_due_date = nextDue.value;
+    }
+
+    const data = await api.post('/payments', payload);
 
     showToast('Payment recorded!', 'green');
     generateReceipt(data.receipt);

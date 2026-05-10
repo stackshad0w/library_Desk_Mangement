@@ -1516,6 +1516,10 @@
           <input type="date" id="pay-date">
         </div>
         <div class="form-group">
+          <label>Next Due Date</label>
+          <input type="date" id="pay-next-due-date">
+        </div>
+        <div class="form-group">
           <label>Payment Method</label>
           <select id="pay-method">
             <option>Cash</option>
@@ -1577,15 +1581,24 @@
     }
 
     function getStatus(s) {
+      if (s.status === 'inactive') return 'Inactive';
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      if (s.dueDate) {
+        const due = new Date(s.dueDate);
+        due.setHours(0, 0, 0, 0);
+        if (due < today) {
+          const diffDays = (today.getTime() - due.getTime()) / (1000 * 60 * 60 * 24);
+          if (diffDays > 60) return 'Inactive';
+          return 'Overdue';
+        }
+      }
+
       const rem = s.totalFees - s.paidFees;
       if (rem <= 0) return 'Paid';
-      const today = new Date();
-      const due = s.dueDate ? new Date(s.dueDate) : null;
-      if (due && due < today) {
-        const diffDays = (today.getTime() - due.getTime()) / (1000 * 60 * 60 * 24);
-        if (diffDays > 60) return 'Inactive';
-        return 'Overdue';
-      }
+
       return 'Pending';
     }
 
@@ -1681,12 +1694,20 @@
       }
 
       content.innerHTML = `
-        <div style="display:flex; align-items:center; gap:16px; margin-bottom:20px;">
-          ${avatarHtml}
+        <div style="display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:20px;">
+          <div style="display:flex; align-items:center; gap:16px;">
+            ${avatarHtml}
+            <div>
+              <h3 style="margin:0;font-size:18px;">${s.name}</h3>
+              <p style="margin:2px 0;color:var(--text2)">${s.id}</p>
+              ${statusBadge(st)}
+            </div>
+          </div>
           <div>
-            <h3 style="margin:0;font-size:18px;">${s.name}</h3>
-            <p style="margin:2px 0;color:var(--text2)">${s.id}</p>
-            ${statusBadge(st)}
+            ${s.status === 'inactive' 
+              ? `<button class="btn btn-primary" onclick="toggleStudentStatus('${s.id}', 'active')">Reactivate</button>`
+              : `<button class="btn btn-ghost" style="color:var(--red);border:1px solid var(--red-bg)" onclick="toggleStudentStatus('${s.id}', 'inactive')">Deactivate</button>`
+            }
           </div>
         </div>
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
@@ -1703,6 +1724,17 @@
         </div>
       `;
       document.getElementById('student-details-modal').classList.add('active');
+    }
+
+    function toggleStudentStatus(id, newStatus) {
+      const s = students.find(x => x.id === id);
+      if (s) {
+        s.status = newStatus;
+        save();
+        showToast(`Student marked as ${newStatus}`);
+        document.getElementById('student-details-modal').classList.remove('active');
+        renderStudentTable();
+      }
     }
 
     function renderStudentTable() {
@@ -1898,6 +1930,8 @@
         `<strong>${s.name}</strong> (${s.id}) · ${s.course}<br>Total: ₹${s.totalFees.toLocaleString()} · Paid: ₹${s.paidFees.toLocaleString()} · <span style="color:var(--amber)">Remaining: ₹${rem.toLocaleString()}</span>`;
       document.getElementById('pay-amount').value = '';
       document.getElementById('pay-date').value = new Date().toISOString().split('T')[0];
+      const nextDue = document.getElementById('pay-next-due-date');
+      if (nextDue) nextDue.value = s.dueDate || '';
       document.getElementById('pay-notes').value = '';
       document.getElementById('receipt-area').innerHTML = '';
       document.getElementById('payment-modal').classList.add('open');
@@ -1912,7 +1946,13 @@
       const method = document.getElementById('pay-method').value;
       const date = document.getElementById('pay-date').value;
       const notes = document.getElementById('pay-notes').value;
+      const nextDue = document.getElementById('pay-next-due-date');
+      
       s.paidFees += amount;
+      if (nextDue && nextDue.value) {
+        s.dueDate = nextDue.value;
+      }
+      
       if (!s.payments) s.payments = [];
       s.payments.push({ amount, date, method, notes });
       save();

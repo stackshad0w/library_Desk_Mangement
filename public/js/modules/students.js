@@ -215,12 +215,20 @@ export async function showStudentDetails(id) {
     }
 
     content.innerHTML = `
-      <div style="display:flex; align-items:center; gap:16px; margin-bottom:20px;">
-        ${avatarHtml}
+      <div style="display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:20px;">
+        <div style="display:flex; align-items:center; gap:16px;">
+          ${avatarHtml}
+          <div>
+            <h3 style="margin:0;font-size:18px;">${s.name}</h3>
+            <p style="margin:2px 0;color:var(--text2)">${s.id}</p>
+            <span class="status-pill ${statusBadgeClass(s.fee_status)}">${s.fee_status}</span>
+          </div>
+        </div>
         <div>
-          <h3 style="margin:0;font-size:18px;">${s.name}</h3>
-          <p style="margin:2px 0;color:var(--text2)">${s.id}</p>
-          <span class="status-pill ${statusBadgeClass(s.fee_status)}">${s.fee_status}</span>
+          ${s.status === 'inactive' 
+            ? `<button class="btn btn-primary" onclick="window.SwamiAbhyasika.toggleStudentStatus('${s.id}', 'active')">Reactivate</button>`
+            : `<button class="btn btn-ghost" style="color:var(--red);border:1px solid var(--red-bg)" onclick="window.SwamiAbhyasika.toggleStudentStatus('${s.id}', 'inactive')">Deactivate</button>`
+          }
         </div>
       </div>
       <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
@@ -239,5 +247,16 @@ export async function showStudentDetails(id) {
     document.getElementById('student-details-modal').classList.add('active');
   } catch (err) {
     showToast('Failed to load student details', 'red');
+  }
+}
+
+export async function toggleStudentStatus(id, status) {
+  try {
+    await api.put(`/students/${id}`, { status });
+    showToast(`Student marked as ${status}`, 'green');
+    document.getElementById('student-details-modal').classList.remove('active');
+    renderStudentTable();
+  } catch (err) {
+    showToast('Failed to update status', 'red');
   }
 }
