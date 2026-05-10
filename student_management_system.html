@@ -1517,7 +1517,11 @@
         </div>
         <div class="form-group">
           <label>From Date</label>
-          <input type="date" id="pay-from-date">
+          <input type="date" id="pay-from-date" onchange="calcNextDueDate()">
+        </div>
+        <div class="form-group">
+          <label>Months</label>
+          <input type="number" id="pay-months" min="1" placeholder="e.g. 1" oninput="calcNextDueDate()">
         </div>
         <div class="form-group">
           <label>Next Due Date</label>
@@ -1647,32 +1651,79 @@
       document.getElementById('f-remaining').value = Math.max(0, total - paid);
     }
 
+    let _editingId = null;
+
     function submitAdmission() {
       const name = document.getElementById('f-name').value.trim();
       const phone = document.getElementById('f-phone').value.trim();
       const course = document.getElementById('f-course').value;
       const total = parseFloat(document.getElementById('f-total-fees').value) || 0;
       if (!name || !phone || !course || !total) { showToast('Please fill all required fields', 'red'); return; }
-      const s = {
-        id: genId(),
-        name, phone,
-        photo: document.getElementById('f-photo').files.length ? document.getElementById('f-photo').files[0].name : '',
-        conditions: document.getElementById('f-conditions').value.trim(),
-        email: document.getElementById('f-email').value.trim(),
-        address: document.getElementById('f-address').value.trim(),
-        course, totalFees: total,
-        paidFees: parseFloat(document.getElementById('f-paid').value) || 0,
-        admissionDate: document.getElementById('f-admission-date').value || new Date().toISOString().split('T')[0],
-        paymentDate: document.getElementById('f-payment-date').value,
-        dueDate: document.getElementById('f-due-date').value,
-        payments: []
-      };
-      students.push(s);
-      save();
+      
+      if (_editingId) {
+        const s = students.find(x => x.id === _editingId);
+        if (s) {
+          s.name = name;
+          s.phone = phone;
+          if (document.getElementById('f-photo').files.length) {
+            s.photo = document.getElementById('f-photo').files[0].name;
+          }
+          s.conditions = document.getElementById('f-conditions').value.trim();
+          s.email = document.getElementById('f-email').value.trim();
+          s.address = document.getElementById('f-address').value.trim();
+          s.course = course;
+          s.totalFees = total;
+          s.paidFees = parseFloat(document.getElementById('f-paid').value) || 0;
+          s.admissionDate = document.getElementById('f-admission-date').value || new Date().toISOString().split('T')[0];
+          s.dueDate = document.getElementById('f-due-date').value;
+          save();
+          showToast('Student updated successfully!', 'green');
+        }
+      } else {
+        const s = {
+          id: genId(),
+          name, phone,
+          photo: document.getElementById('f-photo').files.length ? document.getElementById('f-photo').files[0].name : '',
+          conditions: document.getElementById('f-conditions').value.trim(),
+          email: document.getElementById('f-email').value.trim(),
+          address: document.getElementById('f-address').value.trim(),
+          course, totalFees: total,
+          paidFees: parseFloat(document.getElementById('f-paid').value) || 0,
+          admissionDate: document.getElementById('f-admission-date').value || new Date().toISOString().split('T')[0],
+          paymentDate: document.getElementById('f-payment-date') ? document.getElementById('f-payment-date').value : '',
+          dueDate: document.getElementById('f-due-date').value,
+          payments: []
+        };
+        students.push(s);
+        save();
+        showToast('Student admitted successfully!', 'green');
+      }
+      
       resetForm();
-      showToast('Student admitted successfully!', 'green');
+      _editingId = null;
+      document.getElementById('new-id').textContent = genId();
       updateReminderBadge();
       showPage('admissions', document.querySelector('[onclick*="\'admissions\'"]'));
+    }
+
+    function editStudent(id) {
+      document.getElementById('student-details-modal')?.classList.remove('active');
+      const s = students.find(x => x.id === id);
+      if (!s) return;
+      document.getElementById('f-name').value = s.name;
+      document.getElementById('f-phone').value = s.phone;
+      if (document.getElementById('f-conditions')) document.getElementById('f-conditions').value = s.conditions || '';
+      document.getElementById('f-email').value = s.email || '';
+      document.getElementById('f-address').value = s.address || '';
+      document.getElementById('f-course').value = s.course;
+      document.getElementById('f-total-fees').value = s.totalFees;
+      document.getElementById('f-paid').value = s.paidFees;
+      document.getElementById('f-remaining').value = Math.max(0, s.totalFees - s.paidFees);
+      document.getElementById('f-admission-date').value = s.admissionDate || '';
+      document.getElementById('f-due-date').value = s.dueDate || '';
+      document.getElementById('new-id').textContent = s.id;
+      _editingId = id;
+      showPage('admission-form', document.querySelector('[onclick*="\'admission-form\'"]'));
     }
 
     function resetForm() {
@@ -1681,6 +1732,7 @@
         if (el) el.value = '';
       });
       document.getElementById('f-course').value = '';
+      _editingId = null;
       document.getElementById('new-id').textContent = genId();
       document.getElementById('f-admission-date').value = new Date().toISOString().split('T')[0];
     }
@@ -1707,7 +1759,8 @@
               ${statusBadge(st)}
             </div>
           </div>
-          <div>
+          <div style="display:flex; gap: 8px;">
+            <button class="btn btn-ghost" onclick="editStudent('${s.id}')">Edit</button>
             ${s.status === 'inactive' 
               ? `<button class="btn btn-primary" onclick="toggleStudentStatus('${s.id}', 'active')">Reactivate</button>`
               : `<button class="btn btn-ghost" style="color:var(--red);border:1px solid var(--red-bg)" onclick="toggleStudentStatus('${s.id}', 'inactive')">Deactivate</button>`
@@ -1937,7 +1990,9 @@
       const nextDue = document.getElementById('pay-next-due-date');
       if (nextDue) nextDue.value = s.dueDate || '';
       const fromDate = document.getElementById('pay-from-date');
-      if (fromDate) fromDate.value = '';
+      if (fromDate) fromDate.value = s.dueDate || new Date().toISOString().split('T')[0];
+      const months = document.getElementById('pay-months');
+      if (months) months.value = '';
       document.getElementById('pay-notes').value = '';
       document.getElementById('receipt-area').innerHTML = '';
       document.getElementById('payment-modal').classList.add('open');
@@ -1948,6 +2003,13 @@
     function savePayment() {
       const amount = parseFloat(document.getElementById('pay-amount').value) || 0;
       if (!amount || amount <= 0) { showToast('Enter a valid amount', 'red'); return; }
+
+      const nextDueInput = document.getElementById('pay-next-due-date');
+      if (!nextDueInput || !nextDueInput.value) {
+        showToast('Please specify Next Due Date or Months', 'red');
+        return;
+      }
+
       const s = students.find(x => x.id === payingStudentId);
       const method = document.getElementById('pay-method').value;
       const date = document.getElementById('pay-date').value;
@@ -1967,6 +2029,16 @@
       generateReceipt(s, amount, date, method, notes);
       renderFeeTable();
       updateReminderBadge();
+    }
+
+    function calcNextDueDate() {
+      const fromDateVal = document.getElementById('pay-from-date')?.value;
+      const monthsVal = parseInt(document.getElementById('pay-months')?.value);
+      if (fromDateVal && !isNaN(monthsVal) && monthsVal > 0) {
+        const date = new Date(fromDateVal);
+        date.setMonth(date.getMonth() + monthsVal);
+        document.getElementById('pay-next-due-date').value = date.toISOString().split('T')[0];
+      }
     }
 
     function generateReceipt(s, amount, date, method, notes) {

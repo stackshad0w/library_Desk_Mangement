@@ -56,7 +56,9 @@ export async function openPaymentModal(id) {
     const nextDue = document.getElementById('pay-next-due-date');
     if (nextDue) nextDue.value = s.due_date || '';
     const fromDate = document.getElementById('pay-from-date');
-    if (fromDate) fromDate.value = '';
+    if (fromDate) fromDate.value = s.due_date || new Date().toISOString().split('T')[0];
+    const months = document.getElementById('pay-months');
+    if (months) months.value = '';
     document.getElementById('pay-notes').value = '';
     document.getElementById('receipt-area').innerHTML = '';
     document.getElementById('payment-modal').classList.add('open');
@@ -72,6 +74,12 @@ export function closeModal(id) {
 export async function savePayment() {
   const amount = parseFloat(document.getElementById('pay-amount').value);
   if (!amount || amount <= 0) { showToast('Enter a valid amount', 'red'); return; }
+
+  const nextDueInput = document.getElementById('pay-next-due-date');
+  if (!nextDueInput || !nextDueInput.value) {
+    showToast('Please specify Next Due Date or Months', 'red');
+    return;
+  }
 
   try {
     const payload = {
@@ -120,4 +128,14 @@ function generateReceipt(r) {
       <div class="receipt-row"><span style="color:var(--text3)">Total Paid So Far</span><span>${formatCurrency(r.totalPaid)}</span></div>
       <div class="receipt-row total"><span>Remaining Balance</span><span>${formatCurrency(r.remaining)}</span></div>
     </div>`;
+}
+
+export function calcNextDueDate() {
+  const fromDateVal = document.getElementById('pay-from-date')?.value;
+  const monthsVal = parseInt(document.getElementById('pay-months')?.value);
+  if (fromDateVal && !isNaN(monthsVal) && monthsVal > 0) {
+    const date = new Date(fromDateVal);
+    date.setMonth(date.getMonth() + monthsVal);
+    document.getElementById('pay-next-due-date').value = date.toISOString().split('T')[0];
+  }
 }

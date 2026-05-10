@@ -183,6 +183,7 @@ export async function deleteStudent(id) {
 
 export async function editStudent(id) {
   try {
+    document.getElementById('student-details-modal')?.classList.remove('active');
     const s = await api.get(`/students/${id}`);
     document.getElementById('f-name').value = s.name;
     document.getElementById('f-parent').value = s.parent_name || '';
@@ -224,7 +225,8 @@ export async function showStudentDetails(id) {
             <span class="status-pill ${statusBadgeClass(s.fee_status)}">${s.fee_status}</span>
           </div>
         </div>
-        <div>
+        <div style="display:flex; gap: 8px;">
+          <button class="btn btn-ghost" onclick="window.SwamiAbhyasika.editStudent('${s.id}')">Edit</button>
           ${s.status === 'inactive' 
             ? `<button class="btn btn-primary" onclick="window.SwamiAbhyasika.toggleStudentStatus('${s.id}', 'active')">Reactivate</button>`
             : `<button class="btn btn-ghost" style="color:var(--red);border:1px solid var(--red-bg)" onclick="window.SwamiAbhyasika.toggleStudentStatus('${s.id}', 'inactive')">Deactivate</button>`
