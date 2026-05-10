@@ -13,11 +13,6 @@ function recordPayment(req, res) {
     return res.status(404).json({ message: 'Student not found' });
   }
 
-  const remaining = student.total_fees - student.paid_fees;
-  if (amount > remaining) {
-    return res.status(400).json({ message: `Amount exceeds remaining balance of ₹${remaining}` });
-  }
-
   const paymentId = generateId();
   const receiptNumber = generateReceiptNumber();
 
@@ -26,13 +21,13 @@ function recordPayment(req, res) {
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).run(paymentId, student_id, amount, payment_date, payment_method, notes || '', receiptNumber, req.user.id, from_date || null, new_due_date || null);
 
-  // Update student paid_fees and due_date
+  // Update student: increase both total_fees and paid_fees for subscription renewals
   if (new_due_date) {
-    db.prepare('UPDATE students SET paid_fees = paid_fees + ?, due_date = ?, status = \'active\', updated_at = datetime(\'now\') WHERE id = ?')
-      .run(amount, new_due_date, student_id);
+    db.prepare('UPDATE students SET total_fees = total_fees + ?, paid_fees = paid_fees + ?, due_date = ?, status = \'active\', updated_at = datetime(\'now\') WHERE id = ?')
+      .run(amount, amount, new_due_date, student_id);
   } else {
-    db.prepare('UPDATE students SET paid_fees = paid_fees + ?, status = \'active\', updated_at = datetime(\'now\') WHERE id = ?')
-      .run(amount, student_id);
+    db.prepare('UPDATE students SET total_fees = total_fees + ?, paid_fees = paid_fees + ?, status = \'active\', updated_at = datetime(\'now\') WHERE id = ?')
+      .run(amount, amount, student_id);
   }
 
   // Audit log
@@ -114,9 +109,9 @@ function deletePayment(req, res) {
     return res.status(404).json({ message: 'Payment not found' });
   }
 
-  // Reverse the payment from student
-  db.prepare('UPDATE students SET paid_fees = paid_fees - ?, updated_at = datetime(\'now\') WHERE id = ?')
-    .run(payment.amount, payment.student_id);
+  // Reverse the payment from student (both total_fees and paid_fees)
+  db.prepare('UPDATE students SET total_fees = total_fees - ?, paid_fees = paid_fees - ?, updated_at = datetime(\'now\') WHERE id = ?')
+    .run(payment.amount, payment.amount, payment.student_id);
 
   db.prepare('DELETE FROM payments WHERE id = ?').run(req.params.id);
 

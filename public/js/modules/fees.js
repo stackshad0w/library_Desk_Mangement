@@ -25,7 +25,7 @@ export async function renderFeeTable() {
 
     tbody.innerHTML = data.students.map((s, i) => {
       const rem = Math.max(0, s.total_fees - s.paid_fees);
-      const pct = s.total_fees > 0 ? Math.round((s.paid_fees / s.total_fees) * 100) : 0;
+      const pct = s.total_fees > 0 ? Math.min(100, Math.round((s.paid_fees / s.total_fees) * 100)) : 0;
       const barColor = s.fee_status === 'Paid' ? 'var(--green)' : s.fee_status === 'Overdue' ? 'var(--red)' : 'var(--amber)';
       return `<tr>
         <td><div class="student-cell">

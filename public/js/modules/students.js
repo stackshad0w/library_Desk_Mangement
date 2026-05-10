@@ -176,6 +176,8 @@ export function resetForm() {
   });
   const courseEl = document.getElementById('f-course');
   if (courseEl) courseEl.value = '';
+  const monthsEl = document.getElementById('f-months');
+  if (monthsEl) monthsEl.value = '1';
   document.getElementById('f-admission-date').value = new Date().toISOString().split('T')[0];
 }
 
@@ -286,7 +288,8 @@ export async function toggleStudentStatus(id, status) {
 }
 
 export function autoUpdateAdmissionFee() {
-  const months = 1; // Default for new admission
+  const monthsEl = document.getElementById('f-months');
+  const months = monthsEl ? parseInt(monthsEl.value) || 1 : 1;
   const gender = document.getElementById('f-gender')?.value || 'Male';
   const shift = document.getElementById('f-shift')?.value || 'Day';
   
@@ -296,6 +299,14 @@ export function autoUpdateAdmissionFee() {
     if (totalEl) {
       totalEl.value = fee;
       calcRemaining();
+    }
+    // Auto-calculate due date from admission date + months
+    const admDateEl = document.getElementById('f-admission-date');
+    const dueDateEl = document.getElementById('f-due-date');
+    if (admDateEl && admDateEl.value && dueDateEl) {
+      const dueDate = new Date(admDateEl.value);
+      dueDate.setMonth(dueDate.getMonth() + months);
+      dueDateEl.value = dueDate.toISOString().split('T')[0];
     }
   }
 }

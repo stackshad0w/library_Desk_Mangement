@@ -1308,6 +1308,16 @@
                 </select>
               </div>
               <div class="form-group">
+                <label>Subscription Months</label>
+                <select id="f-months" onchange="autoUpdateAdmissionFee()">
+                  <option value="1">1 Month</option>
+                  <option value="2">2 Months</option>
+                  <option value="3">3 Months</option>
+                  <option value="6">6 Months</option>
+                  <option value="12">12 Months</option>
+                </select>
+              </div>
+              <div class="form-group">
                 <label>Total Fees (₹) *</label>
                 <input type="number" id="f-total-fees" placeholder="0" oninput="calcRemaining()">
               </div>
@@ -1886,6 +1896,8 @@
       document.getElementById('f-course').value = '';
       document.getElementById('f-gender').value = 'Male';
       document.getElementById('f-shift').value = 'Day';
+      const monthsEl = document.getElementById('f-months');
+      if (monthsEl) monthsEl.value = '1';
       _editingId = null;
       document.getElementById('new-id').textContent = genId();
       document.getElementById('f-admission-date').value = new Date().toISOString().split('T')[0];
@@ -2016,7 +2028,7 @@
       tbody.innerHTML = filtered.map((s, i) => {
         const status = getStatus(s);
         const rem = Math.max(0, s.totalFees - s.paidFees);
-        const pct = s.totalFees > 0 ? Math.round((s.paidFees / s.totalFees) * 100) : 0;
+        const pct = s.totalFees > 0 ? Math.min(100, Math.round((s.paidFees / s.totalFees) * 100)) : 0;
         const barColor = status === 'Paid' ? 'var(--green)' : status === 'Overdue' ? 'var(--red)' : 'var(--amber)';
         return `<tr>
       <td><div class="student-cell">
@@ -2185,6 +2197,7 @@
       const fromDate = document.getElementById('pay-from-date');
       const shift = document.getElementById('pay-shift').value;
       s.shift = shift;
+      s.totalFees += amount;  // Subscription renewal: increase total
       s.paidFees += amount;
       s.status = 'active'; // Automatically reactivate
       if (nextDue && nextDue.value) {
@@ -2217,12 +2230,21 @@
     }
 
     function autoUpdateAdmissionFee() {
-      const months = 1;
+      const monthsEl = document.getElementById('f-months');
+      const months = monthsEl ? parseInt(monthsEl.value) || 1 : 1;
       const gender = document.getElementById('f-gender').value;
       const shift = document.getElementById('f-shift').value;
       const fee = getFeeForMonths(months, gender, shift);
       document.getElementById('f-total-fees').value = fee;
       calcRemaining();
+      // Auto-calculate due date
+      const admDateEl = document.getElementById('f-admission-date');
+      const dueDateEl = document.getElementById('f-due-date');
+      if (admDateEl && admDateEl.value && dueDateEl) {
+        const dueDate = new Date(admDateEl.value);
+        dueDate.setMonth(dueDate.getMonth() + months);
+        dueDateEl.value = dueDate.toISOString().split('T')[0];
+      }
     }
 
     function generateReceipt(s, amount, date, method, notes) {
