@@ -25,7 +25,7 @@ export async function renderFeeTable() {
 
     tbody.innerHTML = data.students.map((s, i) => {
       const { balance, pct } = getSubscriptionBalance(s);
-      const timeLeft = 100 - pct;
+      const usagePct = pct;
       const statusLabel = s.fee_status === 'Paid' ? 'Active' : s.fee_status;
       const barColor = s.fee_status === 'Paid' ? 'var(--green)' : s.fee_status === 'Overdue' ? 'var(--red)' : 'var(--amber)';
       return `<tr>
@@ -35,8 +35,8 @@ export async function renderFeeTable() {
         </div></td>
         <td style="font-size:12px;color:var(--text2)">${s.course}</td>
         <td>${formatCurrency(s.total_fees)}</td>
-        <td style="color:${balance > 0 ? 'var(--green)' : 'var(--amber)'}">${formatCurrency(balance)}</td>
-        <td style="min-width:100px"><div class="progress-bar"><div class="progress-fill" style="width:${timeLeft}%;background:${barColor}"></div></div><div style="font-size:11px;color:var(--text3);margin-top:3px">${timeLeft}% left</div></td>
+        <td style="color:${balance > 0 ? 'var(--amber)' : 'var(--green)'}">${formatCurrency(balance)}</td>
+        <td style="min-width:100px"><div class="progress-bar"><div class="progress-fill" style="width:${usagePct}%;background:${barColor}"></div></div><div style="font-size:11px;color:var(--text3);margin-top:3px">${usagePct}% used</div></td>
         <td style="font-size:12px;color:var(--text3)">${s.due_date || '—'}</td>
         <td><span class="status-pill ${statusBadgeClass(s.fee_status)}">${statusLabel}</span></td>
         <td><button class="btn btn-ghost" style="font-size:11px;padding:5px 10px" onclick="window.SwamiAbhyasika.openPaymentModal('${s.id}')">Pay</button></td>
@@ -53,7 +53,7 @@ export async function openPaymentModal(id) {
     const s = await api.get(`/students/${id}`);
     const { balance } = getSubscriptionBalance(s);
     document.getElementById('payment-student-info').innerHTML =
-      `<strong>${s.name}</strong> (${s.id}) · ${s.course}<br>Subscription: ${formatCurrency(s.total_fees)} · <span style="color:${balance > 0 ? 'var(--green)' : 'var(--amber)'}">Balance: ${formatCurrency(balance)}</span>`;
+      `<strong>${s.name}</strong> (${s.id}) · ${s.course}<br>Total Fees: ${formatCurrency(s.total_fees)} · <span style="color:${balance > 0 ? 'var(--amber)' : 'var(--green)'}">Pending: ${formatCurrency(balance)}</span>`;
     document.getElementById('pay-amount').value = '';
     document.getElementById('pay-date').value = new Date().toISOString().split('T')[0];
     const nextDue = document.getElementById('pay-next-due-date');
