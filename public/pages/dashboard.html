@@ -77,6 +77,10 @@
       <button class="menu-toggle" id="menu-toggle"><svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg></button>
       <div class="page-title" id="page-title">Dashboard</div>
       <div class="topbar-actions">
+        <button class="icon-btn" id="theme-toggle" onclick="window.SwamiAbhyasika.toggleTheme()" title="Toggle Light/Dark Mode" style="margin-right: 8px;">
+          <svg id="theme-toggle-dark-icon" class="hidden" width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9-4.03-9-9-9zm0 16c-3.86 0-7-3.14-7-7s3.14-7 7-7 7 3.14 7 7-3.14 7-7 7z"/></svg>
+          <svg id="theme-toggle-light-icon" width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58a.996.996 0 00-1.41 0 .996.996 0 000 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37a.996.996 0 00-1.41 0 .996.996 0 000 1.41l1.06 1.06c.39.39 1.03.39 1.41 0a.996.996 0 000-1.41l-1.06-1.06zm1.06-10.96a.996.996 0 000-1.41.996.996 0 00-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zM7.05 18.36a.996.996 0 000-1.41.996.996 0 00-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06z"/></svg>
+        </button>
         <div class="search-box">
           <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
           <input type="text" placeholder="Search students..." id="global-search">
@@ -100,6 +104,39 @@
 
       <!-- SETTINGS PAGE -->
       <div class="page" id="page-settings">
+        <div class="form-card" style="margin-bottom: 24px;">
+          <div class="form-section">
+            <div class="form-section-title">
+              <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9-4.03-9-9-9zm0 16c-3.86 0-7-3.14-7-7s3.14-7 7-7 7 3.14 7 7-3.14 7-7 7z"/></svg>
+              Study Theme Options
+            </div>
+            <p style="font-size:13px; color:var(--text3); margin-bottom:20px;">Choose an eye-friendly theme for your study environment.</p>
+
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap:16px;">
+              <div class="theme-option" data-theme="default" onclick="window.SwamiAbhyasika.setTheme('default')" style="cursor:pointer; border:2px solid var(--border); border-radius:var(--radius); padding:12px; text-align:center; transition: all 0.2s;">
+                <div style="width:100%; height:60px; background:#0d0f14; border-radius:var(--radius-sm); margin-bottom:8px; border:1px solid rgba(255,255,255,0.1)"></div>
+                <div style="font-size:13px; font-weight:600;">Dark Default</div>
+              </div>
+              <div class="theme-option" data-theme="warm" onclick="window.SwamiAbhyasika.setTheme('warm')" style="cursor:pointer; border:2px solid var(--border); border-radius:var(--radius); padding:12px; text-align:center; transition: all 0.2s;">
+                <div style="width:100%; height:60px; background:#1b1817; border-radius:var(--radius-sm); margin-bottom:8px; border:1px solid rgba(255,255,255,0.1)"></div>
+                <div style="font-size:13px; font-weight:600;">Warm Retro</div>
+              </div>
+              <div class="theme-option" data-theme="light" onclick="window.SwamiAbhyasika.setTheme('light')" style="cursor:pointer; border:2px solid var(--border); border-radius:var(--radius); padding:12px; text-align:center; transition: all 0.2s;">
+                <div style="width:100%; height:60px; background:#ffffff; border-radius:var(--radius-sm); margin-bottom:8px; border:1px solid rgba(0,0,0,0.1)"></div>
+                <div style="font-size:13px; font-weight:600;">Standard Light</div>
+              </div>
+              <div class="theme-option" data-theme="sepia" onclick="window.SwamiAbhyasika.setTheme('sepia')" style="cursor:pointer; border:2px solid var(--border); border-radius:var(--radius); padding:12px; text-align:center; transition: all 0.2s;">
+                <div style="width:100%; height:60px; background:#f4ecd8; border-radius:var(--radius-sm); margin-bottom:8px; border:1px solid rgba(0,0,0,0.1)"></div>
+                <div style="font-size:13px; font-weight:600;">Soft Sepia</div>
+              </div>
+              <div class="theme-option" data-theme="cool" onclick="window.SwamiAbhyasika.setTheme('cool')" style="cursor:pointer; border:2px solid var(--border); border-radius:var(--radius); padding:12px; text-align:center; transition: all 0.2s;">
+                <div style="width:100%; height:60px; background:#0f172a; border-radius:var(--radius-sm); margin-bottom:8px; border:1px solid rgba(255,255,255,0.1)"></div>
+                <div style="font-size:13px; font-weight:600;">Cool Blue</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div class="form-card">
           <div class="form-section">
             <div class="form-section-title">

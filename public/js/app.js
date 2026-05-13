@@ -5,7 +5,7 @@ import { renderFeeTable, openPaymentModal, closeModal, savePayment, calcNextDueD
 import { customConfirm, closeConfirm } from './utils/helpers.js';
 import { renderReminders } from './modules/reminders.js';
 import { exportCSV, exportExcel, exportPDF } from './modules/export.js';
-import { renderSettings, addFeeTier, removeFeeTier, initSettings, getFeeForMonths } from './modules/settings.js';
+import { renderSettings, addFeeTier, removeFeeTier, initSettings, getFeeForMonths, setTheme, toggleTheme } from './modules/settings.js';
 import { initToast, showToast } from './utils/toast.js';
 
 // Guard — redirect to login if not authenticated
@@ -82,6 +82,8 @@ window.SwamiAbhyasika = {
   closeConfirm,
   addFeeTier,
   removeFeeTier,
+  setTheme,
+  toggleTheme,
   autoUpdateAdmissionFee,
   getFeeForMonths,
   _editingId: null,

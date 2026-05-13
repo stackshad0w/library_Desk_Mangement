@@ -4,6 +4,75 @@ import { formatCurrency } from '../utils/helpers.js';
 
 let feeTiers = [];
 
+export async function setTheme(themeName) {
+  try {
+    await api.put('/settings', { key: 'theme', value: themeName });
+    applyTheme(themeName);
+    showToast(`Theme switched to ${themeName}`, 'green');
+  } catch (err) {
+    showToast('Failed to save theme setting', 'red');
+  }
+}
+
+export function toggleTheme() {
+  const currentTheme = document.body.className.split(' ')
+    .find(c => c.startsWith('theme-'))?.replace('theme-', '') || 'default';
+
+  const lightThemes = ['light', 'sepia'];
+  const darkThemes = ['default', 'warm', 'cool'];
+
+  let newTheme;
+  if (lightThemes.includes(currentTheme)) {
+    newTheme = 'default'; // Switch to default dark
+  } else {
+    newTheme = 'light'; // Switch to standard light
+  }
+
+  setTheme(newTheme);
+}
+
+export function applyTheme(themeName) {
+  // Remove all theme classes robustly
+  document.body.className = document.body.className.split(' ')
+    .filter(c => !c.startsWith('theme-'))
+    .join(' ');
+
+  if (themeName && themeName !== 'default') {
+    document.body.classList.add(`theme-${themeName}`);
+  }
+
+  // Update toggle icon
+  const lightIcon = document.getElementById('theme-toggle-light-icon');
+  const darkIcon = document.getElementById('theme-toggle-dark-icon');
+
+  if (lightIcon && darkIcon) {
+    const isLight = ['light', 'sepia'].includes(themeName);
+    if (isLight) {
+      lightIcon.classList.add('hidden');
+      darkIcon.classList.remove('hidden');
+    } else {
+      lightIcon.classList.remove('hidden');
+      darkIcon.classList.add('hidden');
+    }
+  }
+
+  highlightActiveTheme(themeName);
+}
+
+function highlightActiveTheme(themeName) {
+  const activeTheme = themeName || 'default';
+  document.querySelectorAll('.theme-option').forEach(opt => {
+    const cardTheme = opt.dataset.theme;
+    if (cardTheme === activeTheme) {
+      opt.style.borderColor = 'var(--accent)';
+      opt.style.background = 'var(--bg3)';
+    } else {
+      opt.style.borderColor = 'var(--border)';
+      opt.style.background = 'transparent';
+    }
+  });
+}
+
 export async function renderSettings() {
   const list = document.getElementById('fee-tiers-list');
   if (!list) return;
@@ -11,6 +80,9 @@ export async function renderSettings() {
   try {
     const settings = await api.get('/settings');
     feeTiers = settings.fee_tiers || [{ gender: 'Male', shift: 'Day', months: 1, fee: 1000 }];
+    if (settings.theme) {
+      highlightActiveTheme(settings.theme);
+    }
     
     // Sort by shift, then gender, then months
     feeTiers.sort((a, b) => {
@@ -102,6 +174,9 @@ export async function initSettings() {
   try {
     const settings = await api.get('/settings');
     feeTiers = settings.fee_tiers || [{ gender: 'Male', shift: 'Day', months: 1, fee: 1000 }];
+    if (settings.theme) {
+      applyTheme(settings.theme);
+    }
   } catch (err) {
     console.error('Settings init failed');
   }
