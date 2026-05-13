@@ -48,4 +48,22 @@ function authenticate(req, res, next) {
   }
 }
 
-module.exports = { authenticate };
+/**
+ * Authorization middleware.
+ * Checks if the authenticated user has the required role.
+ */
+function authorize(...roles) {
+  return (req, res, next) => {
+    if (!req.user) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+
+    if (!roles.includes(req.user.role)) {
+      return res.status(403).json({ message: 'Forbidden: Insufficient permissions' });
+    }
+
+    next();
+  };
+}
+
+module.exports = { authenticate, authorize };

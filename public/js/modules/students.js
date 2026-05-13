@@ -223,7 +223,7 @@ export async function showStudentDetails(id) {
   try {
     const s = await api.get(`/students/${id}`);
     const content = document.getElementById('student-details-content');
-    const { balance, elapsed, totalMonths, perMonth } = getSubscriptionBalance(s);
+    const { balance, pct } = getSubscriptionBalance(s);
     
     let avatarHtml = `<div class="avatar" style="width:64px;height:64px;font-size:24px;background:var(--accent-bg);color:var(--accent)">${getInitials(s.name)}</div>`;
     if (s.photo) {
@@ -257,10 +257,10 @@ export async function showStudentDetails(id) {
         <div><strong>Admission Date:</strong> ${s.admission_date}</div>
         <div><strong>Conditions:</strong> ${s.conditions || s.parent_name || 'N/A'}</div>
         <div><strong>Address:</strong> ${s.address || 'N/A'}</div>
-        <div><strong>Subscription:</strong> ${formatCurrency(s.total_fees)}</div>
-        <div><strong>Monthly Rate:</strong> ${formatCurrency(perMonth)}/mo</div>
-        <div><strong>Balance:</strong> <span style="color:${balance > 0 ? 'var(--green)' : 'var(--amber)'}">${formatCurrency(balance)}</span></div>
-        <div><strong>Used:</strong> ${elapsed} of ${totalMonths} months</div>
+        <div><strong>Total Fees:</strong> ${formatCurrency(s.total_fees)}</div>
+        <div><strong>Total Paid:</strong> ${formatCurrency(s.paid_fees)}</div>
+        <div><strong>Pending:</strong> <span style="color:${balance > 0 ? 'var(--amber)' : 'var(--green)'}">${formatCurrency(balance)}</span></div>
+        <div><strong>Usage:</strong> ${pct}% of period</div>
         <div><strong>Due Date:</strong> ${s.due_date || 'N/A'}</div>
       </div>
       <div style="margin-top:24px;">
