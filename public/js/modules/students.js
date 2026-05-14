@@ -168,15 +168,26 @@ export async function submitAdmission() {
 }
 
 export function resetForm() {
+  const today = new Date().toISOString().split('T')[0];
   ['f-name','f-parent','f-phone','f-email','f-address','f-total-fees','f-paid','f-remaining','f-payment-date','f-due-date','f-gender','f-shift'].forEach(id => {
     const el = document.getElementById(id);
-    if (el) el.value = (id === 'f-gender') ? 'Male' : (id === 'f-shift' ? 'Day' : '');
+    if (el) {
+      if (id === 'f-gender') el.value = 'Male';
+      else if (id === 'f-shift') el.value = 'Day';
+      else if (id === 'f-admission-date' || id === 'f-payment-date') el.value = today;
+      else el.value = '';
+    }
   });
   const courseEl = document.getElementById('f-course');
   if (courseEl) courseEl.value = '';
   const monthsEl = document.getElementById('f-months');
   if (monthsEl) monthsEl.value = '1';
-  document.getElementById('f-admission-date').value = new Date().toISOString().split('T')[0];
+
+  const admDateEl = document.getElementById('f-admission-date');
+  if (admDateEl) admDateEl.value = today;
+  const payDateEl = document.getElementById('f-payment-date');
+  if (payDateEl) payDateEl.value = today;
+
   setTimeout(() => window.SwamiAbhyasika.autoUpdateAdmissionFee(), 50);
 }
 
