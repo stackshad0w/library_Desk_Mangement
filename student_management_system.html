@@ -21,6 +21,7 @@
     }
 
     :root {
+      color-scheme: dark;
       --bg: #0d0f14;
       --bg2: #13161d;
       --bg3: #1a1e28;
@@ -48,6 +49,7 @@
 
     /* ========== LIGHT THEME (Library Sand) ========== */
     [data-theme="light"] {
+      color-scheme: light;
       --bg: #f5f1e8;
       --bg2: #ebe5d6;
       --bg3: #e0d8c4;
@@ -77,6 +79,30 @@
       min-height: 100vh;
       display: flex;
       font-size: 14px;
+    }
+
+    * {
+      scrollbar-color: var(--bg4) var(--bg2);
+      scrollbar-width: thin;
+    }
+
+    ::-webkit-scrollbar {
+      width: 10px;
+      height: 10px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--bg2);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--bg4);
+      border: 2px solid var(--bg2);
+      border-radius: 999px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--text3);
     }
 
     h1,
@@ -240,7 +266,10 @@
     /* MAIN */
     .main {
       margin-left: var(--sidebar-w);
-      flex: 1;
+      flex: 0 0 calc(100% - var(--sidebar-w));
+      width: calc(100% - var(--sidebar-w));
+      max-width: calc(100vw - var(--sidebar-w));
+      min-width: 0;
       display: flex;
       flex-direction: column;
       min-height: 100vh;
@@ -653,6 +682,11 @@
       width: 100%;
     }
 
+    select option {
+      background: var(--bg3);
+      color: var(--text);
+    }
+
     input:focus,
     select:focus,
     textarea:focus {
@@ -891,6 +925,9 @@
 
       .main {
         margin-left: 0;
+        flex-basis: 100%;
+        width: 100%;
+        max-width: 100vw;
       }
 
       .stats-grid {
@@ -1375,7 +1412,7 @@
               </div>
               <div class="form-group">
                 <label>Subscription Fee (₹) *</label>
-                <input type="number" id="f-total-fees" placeholder="0">
+                <input type="number" id="f-total-fees" min="1" step="1" placeholder="0" oninput="sanitizeNumberInput(this, 1)">
               </div>
               <div class="form-group">
                 <label>Payment Date</label>
@@ -1458,8 +1495,8 @@
             <div style="display:flex; flex-wrap:wrap; gap:12px; align-items:flex-end; padding:16px; background:var(--bg3); border-radius:var(--radius-sm);">
               <div class="form-group" style="flex:1; min-width:100px;"><label>Gender</label><select id="new-tier-gender"><option value="Male">Male</option><option value="Female">Female</option></select></div>
               <div class="form-group" style="flex:1; min-width:100px;"><label>Shift</label><select id="new-tier-shift"><option value="Day">Day</option><option value="Night">Night</option><option value="Both">Both</option></select></div>
-              <div class="form-group" style="flex:1; min-width:100px;"><label>Months</label><input type="number" id="new-tier-months" placeholder="e.g. 3"></div>
-              <div class="form-group" style="flex:1; min-width:120px;"><label>Total Fee (₹)</label><input type="number" id="new-tier-fee" placeholder="e.g. 2700"></div>
+              <div class="form-group" style="flex:1; min-width:100px;"><label>Months</label><input type="number" id="new-tier-months" min="1" step="1" placeholder="e.g. 3" oninput="sanitizeNumberInput(this, 1, true)"></div>
+              <div class="form-group" style="flex:1; min-width:120px;"><label>Total Fee (₹)</label><input type="number" id="new-tier-fee" min="1" step="1" placeholder="e.g. 2700" oninput="sanitizeNumberInput(this, 1)"></div>
               <button class="btn btn-primary" onclick="addFeeTier()" style="height:42px;">Add Rule</button>
             </div>
           </div>
@@ -1521,7 +1558,7 @@
                 <input type="text" placeholder="Search city or hub name...">
               </div>
               <select class="filter-sel"
-                style="background: var(--bg3); color: white; padding: 10px; border-radius: 8px;">
+                style="background: var(--bg3); color: var(--text); padding: 10px; border-radius: 8px;">
                 <option>Nearby (5km)</option>
                 <option>24/7 Access</option>
                 <option>Premium Only</option>
@@ -1610,7 +1647,7 @@
       <div class="form-grid">
         <div class="form-group">
           <label>Payment Amount (₹)</label>
-          <input type="number" id="pay-amount" placeholder="Enter amount">
+          <input type="number" id="pay-amount" min="1" step="1" placeholder="Enter amount" oninput="sanitizeNumberInput(this, 1)">
         </div>
         <div class="form-group">
           <label>Payment Date</label>
@@ -1622,7 +1659,7 @@
         </div>
         <div class="form-group">
           <label>Months</label>
-          <input type="number" id="pay-months" min="1" placeholder="e.g. 1" oninput="calcNextDueDate()">
+          <input type="number" id="pay-months" min="1" step="1" placeholder="e.g. 1" oninput="sanitizeNumberInput(this, 1, true); calcNextDueDate()">
         </div>
         <div class="form-group">
           <label>Subscription Shift</label>
@@ -1719,7 +1756,57 @@
     let payingStudentGender = 'Male';
     let feeTiers = JSON.parse(localStorage.getItem('edu_fee_tiers') || '[{"gender":"Male","shift":"Day","months":1,"fee":1000}]');
 
+    function sanitizeNumberInput(input, min = 0, integer = false) {
+      if (!input || input.value === '') return;
+      const value = Number(input.value);
+      if (!Number.isFinite(value)) {
+        input.value = '';
+        return;
+      }
+      let next = Math.max(min, value);
+      if (integer) next = Math.floor(next);
+      if (String(next) !== input.value) input.value = String(next);
+    }
+
+    function setupNumberInputGuards() {
+      [
+        { id: 'new-tier-months', min: 1, integer: true },
+        { id: 'new-tier-fee', min: 1 },
+        { id: 'f-total-fees', min: 1 },
+        { id: 'pay-amount', min: 1 },
+        { id: 'pay-months', min: 1, integer: true }
+      ].forEach(({ id, min, integer }) => {
+        const input = document.getElementById(id);
+        if (!input) return;
+        input.min = String(min);
+        input.step = '1';
+        input.addEventListener('input', () => sanitizeNumberInput(input, min, integer));
+      });
+    }
+
+    function normalizeFeeTiers() {
+      const normalized = feeTiers.map(tier => ({
+        gender: tier.gender || 'Male',
+        shift: tier.shift || 'Day',
+        months: Number(tier.months),
+        fee: Number(tier.fee)
+      })).filter(tier =>
+        Number.isInteger(tier.months) &&
+        tier.months >= 1 &&
+        Number.isFinite(tier.fee) &&
+        tier.fee > 0
+      );
+      if (!normalized.some(tier => tier.gender === 'Male' && tier.shift === 'Day' && tier.months === 1)) {
+        normalized.unshift({ gender: 'Male', shift: 'Day', months: 1, fee: 1000 });
+      }
+      feeTiers = normalized;
+      localStorage.setItem('edu_fee_tiers', JSON.stringify(feeTiers));
+    }
+
+    normalizeFeeTiers();
+
     function renderSettings() {
+      normalizeFeeTiers();
       const list = document.getElementById('fee-tiers-list');
       feeTiers.sort((a, b) => {
         if (a.shift !== b.shift) return a.shift.localeCompare(b.shift);
@@ -1744,14 +1831,18 @@
     function addFeeTier() {
       const gender = document.getElementById('new-tier-gender').value;
       const shift = document.getElementById('new-tier-shift').value;
-      const months = parseInt(document.getElementById('new-tier-months').value);
-      const fee = parseFloat(document.getElementById('new-tier-fee').value);
-      if (!months || !fee) return showToast('Invalid input', 'red');
+      const months = Number(document.getElementById('new-tier-months').value);
+      const fee = Number(document.getElementById('new-tier-fee').value);
+      if (!Number.isInteger(months) || months < 1 || !Number.isFinite(fee) || fee <= 0) {
+        return showToast('Please enter valid months (whole number >= 1) and fee (> 0)', 'red');
+      }
       const idx = feeTiers.findIndex(t => t.gender === gender && t.shift === shift && t.months === months);
       if (idx > -1) feeTiers[idx].fee = fee;
       else feeTiers.push({ gender, shift, months, fee });
       localStorage.setItem('edu_fee_tiers', JSON.stringify(feeTiers));
       showToast('Fee rule updated', 'green');
+      document.getElementById('new-tier-months').value = '';
+      document.getElementById('new-tier-fee').value = '';
       renderSettings();
     }
 
@@ -1765,6 +1856,7 @@
     }
 
     function getFeeForMonths(months, gender = 'Male', shift = 'Day') {
+      if (!Number.isInteger(months) || months < 1) return 0;
       let tier = feeTiers.find(t => t.months === months && t.gender === gender && t.shift === shift);
       if (tier) return tier.fee;
       const base = feeTiers.find(t => t.months === 1 && t.gender === gender && t.shift === shift) 
@@ -1878,8 +1970,11 @@
       const name = document.getElementById('f-name').value.trim();
       const phone = document.getElementById('f-phone').value.trim();
       const course = document.getElementById('f-course').value;
-      const total = parseFloat(document.getElementById('f-total-fees').value) || 0;
-      if (!name || !phone || !course || !total) { showToast('Please fill all required fields', 'red'); return; }
+      const total = Number(document.getElementById('f-total-fees').value);
+      if (!name || !phone || !course || !Number.isFinite(total) || total <= 0) {
+        showToast('Please fill required fields and enter a valid positive fee', 'red');
+        return;
+      }
       
       if (_editingId) {
         const s = students.find(x => x.id === _editingId);
@@ -1914,7 +2009,7 @@
           gender: document.getElementById('f-gender').value,
           shift: document.getElementById('f-shift').value,
           totalFees: total,
-          paidFees: parseFloat(document.getElementById('f-total-fees').value) || 0, // Fully paid upfront
+          paidFees: total, // Fully paid upfront
           admissionDate: document.getElementById('f-admission-date').value || new Date().toISOString().split('T')[0],
           paymentDate: document.getElementById('f-payment-date') ? document.getElementById('f-payment-date').value : '',
           dueDate: document.getElementById('f-due-date').value,
@@ -2271,8 +2366,8 @@
     function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 
     function savePayment() {
-      const amount = parseFloat(document.getElementById('pay-amount').value) || 0;
-      if (!amount || amount <= 0) { showToast('Enter a valid amount', 'red'); return; }
+      const amount = Number(document.getElementById('pay-amount').value);
+      if (!Number.isFinite(amount) || amount <= 0) { showToast('Enter a valid amount', 'red'); return; }
 
       const nextDueInput = document.getElementById('pay-next-due-date');
       if (!nextDueInput || !nextDueInput.value) {
@@ -2306,8 +2401,8 @@
 
     function calcNextDueDate() {
       const fromDateVal = document.getElementById('pay-from-date')?.value;
-      const monthsVal = parseInt(document.getElementById('pay-months')?.value);
-      if (fromDateVal && !isNaN(monthsVal) && monthsVal > 0) {
+      const monthsVal = Number(document.getElementById('pay-months')?.value);
+      if (fromDateVal && Number.isInteger(monthsVal) && monthsVal > 0) {
         const date = new Date(fromDateVal);
         date.setMonth(date.getMonth() + monthsVal);
         document.getElementById('pay-next-due-date').value = date.toISOString().split('T')[0];
@@ -2323,7 +2418,8 @@
     function autoUpdateAdmissionFee() {
       try {
         const monthsEl = document.getElementById('f-months');
-        const months = monthsEl ? parseInt(monthsEl.value) || 1 : 1;
+        const parsedMonths = monthsEl ? Number(monthsEl.value) : 1;
+        const months = Number.isInteger(parsedMonths) && parsedMonths > 0 ? parsedMonths : 1;
         const gender = document.getElementById('f-gender')?.value || 'Male';
         const shift = document.getElementById('f-shift')?.value || 'Day';
         const fee = getFeeForMonths(months, gender, shift);
@@ -2490,6 +2586,7 @@
     updateThemeIcons();
 
     // Init
+    setupNumberInputGuards();
     updateReminderBadge();
     renderDashboard();
   </script>
