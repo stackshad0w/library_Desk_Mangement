@@ -21,10 +21,14 @@ function generateReceiptNumber() {
 }
 
 /**
- * Generate a new student ID based on current count
+ * Generate a new student ID based on last ID
  */
-function generateStudentId(currentCount) {
-  return 'STU-' + String(currentCount + 1).padStart(4, '0');
+function generateStudentId(lastId) {
+  if (!lastId) return 'STU-0001';
+  const parts = lastId.split('-');
+  const lastNumber = parseInt(parts[parts.length - 1]);
+  const nextNumber = isNaN(lastNumber) ? 1 : lastNumber + 1;
+  return 'STU-' + String(nextNumber).padStart(4, '0');
 }
 
 /**
