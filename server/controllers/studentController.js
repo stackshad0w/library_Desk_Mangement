@@ -98,8 +98,8 @@ function create(req, res) {
   if (gender && !validGenders.includes(gender)) return res.status(400).json({ message: 'Invalid gender value' });
   if (shift && !validShifts.includes(shift)) return res.status(400).json({ message: 'Invalid shift value' });
 
-  const count = db.prepare('SELECT COUNT(*) as cnt FROM students').get().cnt;
-  const id = generateStudentId(count);
+  const lastIdRow = db.prepare("SELECT id FROM students WHERE id LIKE 'STU-%' ORDER BY CAST(SUBSTR(id, 5) AS INTEGER) DESC LIMIT 1").get();
+  const id = generateStudentId(lastIdRow ? lastIdRow.id : null);
 
   db.prepare(`
     INSERT INTO students (id, name, parent_name, phone, email, address, course, admission_date, due_date, total_fees, paid_fees, gender, shift, created_by)

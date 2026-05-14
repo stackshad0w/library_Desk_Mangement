@@ -1782,8 +1782,12 @@
     function formatCurrency(amount) { return '₹' + (amount || 0).toLocaleString(); }
 
     function genId() {
-      const n = students.length + 1;
-      return 'STU-' + String(n).padStart(4, '0');
+      if (students.length === 0) return 'STU-0001';
+      const lastId = students.map(s => {
+        const parts = s.id.split('-');
+        return parseInt(parts[parts.length - 1]) || 0;
+      }).sort((a, b) => b - a)[0];
+      return 'STU-' + String(lastId + 1).padStart(4, '0');
     }
 
     function save() {
