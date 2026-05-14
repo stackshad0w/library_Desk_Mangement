@@ -43,6 +43,7 @@ function getFeeStatus(student) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
+  // Check for overdue first
   if (student.due_date) {
     const due = new Date(student.due_date);
     due.setHours(0, 0, 0, 0);
@@ -53,7 +54,8 @@ function getFeeStatus(student) {
     }
   }
 
-  const remaining = student.total_fees - student.paid_fees;
+  // Then check for debt
+  const remaining = Math.round((student.total_fees - (student.paid_fees || 0)) * 100) / 100;
   if (remaining <= 0) return 'Paid';
   
   return 'Pending';

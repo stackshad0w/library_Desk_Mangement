@@ -1,3 +1,4 @@
+/* ========== DARK THEME (Default) ========== */
 :root {
   --bg: #0d0f14;
   --bg2: #13161d;
@@ -27,6 +28,35 @@
   --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
   --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
   --shadow-lg: 0 8px 30px rgba(0,0,0,0.5);
+  --modal-overlay: rgba(0, 0, 0, 0.7);
+}
+
+/* ========== LIGHT THEME (Library Sand) ========== */
+[data-theme="light"] {
+  --bg: #f5f1e8;
+  --bg2: #ebe5d6;
+  --bg3: #e0d8c4;
+  --bg4: #d5cbb3;
+  --border: rgba(139, 115, 85, 0.15);
+  --border2: rgba(139, 115, 85, 0.25);
+  --text: #3d3020;
+  --text2: #6b5d47;
+  --text3: #8b7355;
+  --accent: #7c5e2e;
+  --accent2: #96732f;
+  --accent-bg: rgba(124, 94, 46, 0.12);
+  --green: #4d7c0f;
+  --green-bg: rgba(77, 124, 15, 0.12);
+  --amber: #b45309;
+  --amber-bg: rgba(180, 83, 9, 0.12);
+  --red: #b91c1c;
+  --red-bg: rgba(185, 28, 28, 0.1);
+  --blue: #0369a1;
+  --blue-bg: rgba(3, 105, 161, 0.1);
+  --shadow-sm: 0 2px 4px rgba(61, 48, 32, 0.08);
+  --shadow-md: 0 4px 8px rgba(61, 48, 32, 0.12);
+  --shadow-lg: 0 8px 16px rgba(61, 48, 32, 0.16);
+  --modal-overlay: rgba(61, 48, 32, 0.4);
 }
 
 body.theme-warm {

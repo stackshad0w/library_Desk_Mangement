@@ -19,10 +19,10 @@ function getStats(req, res) {
     'SELECT COALESCE(SUM(total_fees), 0) as total, COALESCE(SUM(paid_fees), 0) as collected FROM students'
   ).get();
 
-  const pending = fees.total - fees.collected;
+  const pending = Math.max(0, fees.total - fees.collected);
 
   // Status breakdown
-  const students = db.prepare('SELECT total_fees, paid_fees, due_date FROM students').all();
+  const students = db.prepare('SELECT total_fees, paid_fees, due_date, status FROM students').all();
   let paidCount = 0, pendingCount = 0, overdueCount = 0;
   students.forEach(s => {
     const status = getFeeStatus(s);

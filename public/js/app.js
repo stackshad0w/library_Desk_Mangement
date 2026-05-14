@@ -7,11 +7,13 @@ import { renderReminders } from './modules/reminders.js';
 import { exportCSV, exportExcel, exportPDF } from './modules/export.js';
 import { renderSettings, addFeeTier, removeFeeTier, initSettings, getFeeForMonths, setTheme, toggleTheme } from './modules/settings.js';
 import { initToast, showToast } from './utils/toast.js';
+import { initTheme, toggleTheme } from './utils/theme.js';
 
 // Guard — redirect to login if not authenticated
 if (!requireAuth()) throw new Error('Not authenticated');
 
 initToast();
+initTheme();
 setupAuthUI();
 initSettings();
 
@@ -86,6 +88,7 @@ window.SwamiAbhyasika = {
   toggleTheme,
   autoUpdateAdmissionFee,
   getFeeForMonths,
+  toggleTheme,
   _editingId: null,
 };
 
