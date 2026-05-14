@@ -17,7 +17,7 @@ exports.getSettings = (req, res) => {
   }
 };
 
-const ALLOWED_SETTINGS_KEYS = ['fee_tiers'];
+const ALLOWED_SETTINGS_KEYS = ['fee_tiers', 'theme'];
 
 exports.updateSetting = (req, res) => {
   const { key, value } = req.body;
@@ -27,6 +27,14 @@ exports.updateSetting = (req, res) => {
 
   if (!ALLOWED_SETTINGS_KEYS.includes(key)) {
     return res.status(400).json({ message: `Unknown setting key: ${key}` });
+  }
+
+  // Validation
+  if (key === 'theme') {
+    const validThemes = ['default', 'warm', 'light', 'sepia', 'cool'];
+    if (!validThemes.includes(value)) {
+      return res.status(400).json({ message: `Invalid theme: ${value}` });
+    }
   }
 
   // Validate fee_tiers structure
