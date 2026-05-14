@@ -5,9 +5,9 @@ import { renderFeeTable, openPaymentModal, closeModal, savePayment, calcNextDueD
 import { customConfirm, closeConfirm } from './utils/helpers.js';
 import { renderReminders } from './modules/reminders.js';
 import { exportCSV, exportExcel, exportPDF } from './modules/export.js';
-import { renderSettings, addFeeTier, removeFeeTier, initSettings, getFeeForMonths, setTheme, toggleTheme } from './modules/settings.js';
+import { renderSettings, addFeeTier, removeFeeTier, initSettings, getFeeForMonths, setTheme, toggleTheme as toggleThemeSettings } from './modules/settings.js';
 import { initToast, showToast } from './utils/toast.js';
-import { initTheme, toggleTheme } from './utils/theme.js';
+import { initTheme, toggleTheme as toggleThemeUtil } from './utils/theme.js';
 
 // Guard — redirect to login if not authenticated
 if (!requireAuth()) throw new Error('Not authenticated');
@@ -45,10 +45,6 @@ function showPage(id) {
   if (id === 'fees') renderFeeTable();
   if (id === 'reminders') renderReminders();
   if (id === 'settings') renderSettings();
-  if (id === 'admission-form') {
-    document.getElementById('f-admission-date').value = new Date().toISOString().split('T')[0];
-    window.SwamiAbhyasika._editingId = null;
-  }
 }
 
 // Mobile sidebar toggle
@@ -85,16 +81,22 @@ window.SwamiAbhyasika = {
   addFeeTier,
   removeFeeTier,
   setTheme,
-  toggleTheme,
+  toggleTheme: toggleThemeUtil,
   autoUpdateAdmissionFee,
   getFeeForMonths,
-  toggleTheme,
   _editingId: null,
 };
 
 // Wire up navigation
 document.querySelectorAll('.nav-item[data-page]').forEach(item => {
-  item.addEventListener('click', () => showPage(item.dataset.page));
+  item.addEventListener('click', () => {
+    const page = item.dataset.page;
+    if (page === 'admission-form') {
+      resetForm();
+      window.SwamiAbhyasika._editingId = null;
+    }
+    showPage(page);
+  });
 });
 
 // Wire up filter dropdowns
