@@ -27,7 +27,7 @@ function getStats(req, res) {
     const balance = Math.max(0, total - paid);
 
     if (status === 'Paid') paidCount++;
-    else if (status === 'Overdue' || status === 'Inactive') {
+    else if (status === 'Overdue') {
       overdueCount++;
       feesOverdue += balance;
     } else {

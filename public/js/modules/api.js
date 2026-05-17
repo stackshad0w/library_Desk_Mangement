@@ -60,7 +60,7 @@ async function request(endpoint, options = {}) {
     res = await fetch(url, { ...options, headers });
   } catch (err) {
     const fallback = handleLocalRequest(endpoint, options);
-    if (fallback) return fallback;
+    if (fallback !== null) return fallback;
     throw err;
   }
 
@@ -72,7 +72,7 @@ async function request(endpoint, options = {}) {
       res = await fetch(url, { ...options, headers, _retried: true });
     } else {
       const fallback = handleLocalRequest(endpoint, options);
-      if (fallback) return fallback;
+      if (fallback !== null) return fallback;
       clearTokens();
       window.location.href = '/pages/login.html';
       throw new Error('Session expired');
@@ -83,7 +83,7 @@ async function request(endpoint, options = {}) {
   if (!res.ok) {
     if ([404, 405].includes(res.status)) {
       const fallback = handleLocalRequest(endpoint, options);
-      if (fallback) return fallback;
+      if (fallback !== null) return fallback;
     }
     const err = new Error(data.message || 'Request failed');
     err.status = res.status;
@@ -124,6 +124,18 @@ function getLocalStudents() {
 
 function saveLocalStudents(students) {
   writeJson(LOCAL_STUDENTS_KEY, students);
+  try {
+    window.dispatchEvent(new StorageEvent('storage', {
+      key: LOCAL_STUDENTS_KEY,
+      newValue: JSON.stringify(students),
+      storageArea: localStorage,
+    }));
+  } catch {
+    const event = new Event('storage');
+    Object.defineProperty(event, 'key', { value: LOCAL_STUDENTS_KEY });
+    Object.defineProperty(event, 'newValue', { value: JSON.stringify(students) });
+    window.dispatchEvent(event);
+  }
 }
 
 function getLocalPayments() {
@@ -135,9 +147,9 @@ function saveLocalPayments(payments) {
 }
 
 function feeStatus(student) {
-  if (student.status === 'inactive') return 'Inactive';
   const balance = Math.max(0, Number(student.total_fees || 0) - Number(student.paid_fees || 0));
   if (balance <= 0) return 'Paid';
+  if (student.status === 'inactive') return 'Overdue';
   if (student.due_date) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -173,7 +185,7 @@ function localDashboardStats() {
   let feesOverdue = 0;
   const paymentTotal = payments.reduce((sum, payment) => sum + (Number(payment.amount) || 0), 0);
   const paidTotal = students.reduce((sum, student) => sum + Math.min(Number(student.paid_fees) || 0, Number(student.total_fees) || 0), 0);
-  const feesCollected = paymentTotal || paidTotal;
+  const feesCollected = payments.length > 0 ? paymentTotal : paidTotal;
   const statusBreakdown = { paid: 0, pending: 0, overdue: 0 };
 
   students.forEach(student => {
@@ -181,7 +193,7 @@ function localDashboardStats() {
     const paid = Number(student.paid_fees) || 0;
     const balance = Math.max(0, total - paid);
     if (student.fee_status === 'Paid') statusBreakdown.paid++;
-    else if (student.fee_status === 'Overdue' || student.fee_status === 'Inactive') {
+    else if (student.fee_status === 'Overdue') {
       statusBreakdown.overdue++;
       feesOverdue += balance;
     } else {
@@ -207,6 +219,32 @@ function localDashboardStats() {
     recentAdmissions: students.slice().sort((a, b) => String(b.created_at || '').localeCompare(String(a.created_at || ''))).slice(0, 5),
     monthlyRevenue: [],
   };
+}
+
+function localReminders() {
+  const students = getLocalStudents().map(enrichStudent);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const reminders = students
+    .filter(s => s.fee_status === 'Overdue' || s.fee_status === 'Pending')
+    .map(s => {
+      let days_until_due = null;
+      if (s.due_date) {
+        const due = new Date(s.due_date);
+        due.setHours(0, 0, 0, 0);
+        days_until_due = Math.ceil((due - today) / 86400000);
+      }
+      return { ...s, days_until_due };
+    })
+    .filter(s => s.fee_status === 'Overdue' || (s.days_until_due !== null && s.days_until_due <= 7))
+    .sort((a, b) => (a.days_until_due ?? -Infinity) - (b.days_until_due ?? -Infinity));
+
+  return { reminders, count: reminders.length };
+}
+
+function localExportStudents() {
+  return { students: getLocalStudents().map(enrichStudent) };
 }
 
 function handleLocalRequest(endpoint, options = {}) {
@@ -235,6 +273,14 @@ function handleLocalRequest(endpoint, options = {}) {
 
   if (path === '/dashboard/stats' && method === 'GET') {
     return localDashboardStats();
+  }
+
+  if (path === '/dashboard/reminders' && method === 'GET') {
+    return localReminders();
+  }
+
+  if (path === '/export/students' && method === 'GET') {
+    return localExportStudents();
   }
 
   if (path === '/students/courses' && method === 'GET') {

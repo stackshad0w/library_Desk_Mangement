@@ -4,6 +4,12 @@ import { showToast } from '../utils/toast.js';
 
 let feeChart = null, courseChart = null;
 
+window.addEventListener('storage', (e) => {
+  if (e.key === 'edutrack_students' && document.getElementById('page-dashboard')?.classList.contains('active')) {
+    renderDashboard();
+  }
+});
+
 export async function renderDashboard() {
   try {
     const data = await api.get('/dashboard/stats');
@@ -11,6 +17,8 @@ export async function renderDashboard() {
     document.getElementById('stat-new').textContent = data.newThisMonth;
     document.getElementById('stat-collected').textContent = formatCurrency(data.feesCollected);
     document.getElementById('stat-pending').textContent = formatCurrency(data.feesPending);
+    const overdueEl = document.getElementById('stat-overdue');
+    if (overdueEl) overdueEl.textContent = formatCurrency(data.feesOverdue);
     renderRecentTable(data.recentAdmissions);
     renderCharts(data);
     updateReminderBadge(data.statusBreakdown.overdue + data.statusBreakdown.pending);

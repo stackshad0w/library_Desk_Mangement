@@ -1,41 +1,54 @@
-/**
- * Theme toggle utility — handles dark/light mode switching.
- * Persists user preference to localStorage.
- */
+const STORAGE_KEY = 'selectedTheme';
 
-const STORAGE_KEY = 'edutrack-theme';
-
-/** Apply saved theme on module load (prevents flash of wrong theme) */
 function applySavedTheme() {
-  const saved = localStorage.getItem(STORAGE_KEY);
-  if (saved === 'light') {
+  applyBodyTheme(localStorage.getItem(STORAGE_KEY) || 'default');
+}
+
+export function applyBodyTheme(themeName) {
+  document.body.className = document.body.className
+    .split(' ')
+    .filter(c => !c.startsWith('theme-'))
+    .join(' ');
+
+  if (themeName && themeName !== 'default') {
+    document.body.classList.add(`theme-${themeName}`);
+  }
+
+  if (['light', 'sepia'].includes(themeName)) {
     document.documentElement.setAttribute('data-theme', 'light');
   } else {
     document.documentElement.removeAttribute('data-theme');
   }
+
+  updateToggleIcons(themeName);
 }
 
-/** Toggle between dark and light themes */
 export function toggleTheme() {
-  const isCurrentlyLight = document.documentElement.getAttribute('data-theme') === 'light';
-  if (isCurrentlyLight) {
-    document.documentElement.removeAttribute('data-theme');
-    localStorage.setItem(STORAGE_KEY, 'dark');
+  const current = localStorage.getItem(STORAGE_KEY) || 'default';
+  const next = ['light', 'sepia'].includes(current) ? 'default' : 'light';
+
+  if (window.SwamiAbhyasika?.setTheme) {
+    window.SwamiAbhyasika.setTheme(next);
   } else {
-    document.documentElement.setAttribute('data-theme', 'light');
-    localStorage.setItem(STORAGE_KEY, 'light');
+    localStorage.setItem(STORAGE_KEY, next);
+    applyBodyTheme(next);
   }
-  updateToggleIcons();
 }
 
-/** Get current theme */
 export function getTheme() {
-  return document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+  return localStorage.getItem(STORAGE_KEY) || 'default';
 }
 
-/** Update all toggle button icons on the page */
-function updateToggleIcons() {
-  const isLight = getTheme() === 'light';
+function updateToggleIcons(themeName) {
+  const isLight = ['light', 'sepia'].includes(themeName);
+
+  const lightIcon = document.getElementById('theme-toggle-light-icon');
+  const darkIcon = document.getElementById('theme-toggle-dark-icon');
+  if (lightIcon && darkIcon) {
+    lightIcon.classList.toggle('hidden', isLight);
+    darkIcon.classList.toggle('hidden', !isLight);
+  }
+
   document.querySelectorAll('.theme-toggle-btn').forEach(btn => {
     const sunIcon = btn.querySelector('.icon-sun');
     const moonIcon = btn.querySelector('.icon-moon');
@@ -46,12 +59,9 @@ function updateToggleIcons() {
   });
 }
 
-/** Initialize theme system — call once on page load */
 export function initTheme() {
   applySavedTheme();
-  // Wire up all toggle buttons
   document.querySelectorAll('.theme-toggle-btn').forEach(btn => {
     btn.addEventListener('click', toggleTheme);
   });
-  updateToggleIcons();
 }
