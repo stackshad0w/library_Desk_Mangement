@@ -112,6 +112,12 @@ export function setSearch(value) {
 }
 export const debouncedSearch = debounce(setSearch, 300);
 
+window.addEventListener('storage', (e) => {
+  if (e.key === 'edutrack_students' && document.getElementById('page-admissions')?.classList.contains('active')) {
+    renderStudentTable();
+  }
+});
+
 export async function submitAdmission() {
   const nameEl = document.getElementById('f-name');
   const phoneEl = document.getElementById('f-phone');

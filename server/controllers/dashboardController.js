@@ -14,21 +14,26 @@ function getStats(req, res) {
     'SELECT COUNT(*) as cnt FROM students WHERE admission_date >= ?'
   ).get(monthStart).cnt;
 
-  // Fee totals
-  const fees = db.prepare(
-    'SELECT COALESCE(SUM(total_fees), 0) as total, COALESCE(SUM(paid_fees), 0) as collected FROM students'
-  ).get();
-
-  const pending = Math.max(0, fees.total - fees.collected);
-
   // Status breakdown
   const students = db.prepare('SELECT total_fees, paid_fees, due_date, status FROM students').all();
   let paidCount = 0, pendingCount = 0, overdueCount = 0;
+  let feesPending = 0, feesOverdue = 0;
+  const feesCollected = db.prepare('SELECT COALESCE(SUM(amount), 0) as total FROM payments').get().total;
+
   students.forEach(s => {
     const status = getFeeStatus(s);
+    const total = Number(s.total_fees) || 0;
+    const paid = Number(s.paid_fees) || 0;
+    const balance = Math.max(0, total - paid);
+
     if (status === 'Paid') paidCount++;
-    else if (status === 'Overdue') overdueCount++;
-    else pendingCount++;
+    else if (status === 'Overdue' || status === 'Inactive') {
+      overdueCount++;
+      feesOverdue += balance;
+    } else {
+      pendingCount++;
+      feesPending += balance;
+    }
   });
 
   // Course distribution
@@ -60,8 +65,10 @@ function getStats(req, res) {
   res.json({
     totalStudents,
     newThisMonth,
-    feesCollected: fees.collected,
-    feesPending: pending,
+    feesCollected,
+    feesPending,
+    feesOverdue,
+    totalBilled: feesCollected + feesPending + feesOverdue,
     statusBreakdown: { paid: paidCount, pending: pendingCount, overdue: overdueCount },
     courseDistribution: courseData,
     recentAdmissions: recent,

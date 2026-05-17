@@ -2,15 +2,27 @@ import { api } from './api.js';
 import { showToast } from '../utils/toast.js';
 import { formatCurrency } from '../utils/helpers.js';
 
+export const DEFAULT_THEMES = [
+  { id: 'default', label: 'Dark Default', bg: '#1a1a2e' },
+  { id: 'warm', label: 'Warm Retro', bg: '#2a2010' },
+  { id: 'light', label: 'Standard Light', bg: '#ffffff' },
+  { id: 'sepia', label: 'Soft Sepia', bg: '#f5f0e8' },
+  { id: 'cool', label: 'Cool Blue', bg: '#0d1b2a' },
+];
+
+const SELECTED_THEME_KEY = 'selectedTheme';
 let feeTiers = [];
 
 export async function setTheme(themeName) {
+  localStorage.setItem(SELECTED_THEME_KEY, themeName);
+  applyTheme(themeName);
+
   try {
     await api.put('/settings', { key: 'theme', value: themeName });
-    applyTheme(themeName);
     showToast(`Theme switched to ${themeName}`, 'green');
   } catch (err) {
-    showToast('Failed to save theme setting', 'red');
+    console.warn('Could not save remote theme setting, using local preference.', err);
+    showToast('Theme saved locally', 'green');
   }
 }
 
@@ -73,16 +85,34 @@ function highlightActiveTheme(themeName) {
   });
 }
 
+export function renderThemeOptions(themes = DEFAULT_THEMES) {
+  const container = document.getElementById('theme-options-container');
+  if (!container) return;
+
+  const saved = localStorage.getItem(SELECTED_THEME_KEY) || 'default';
+  container.innerHTML = themes.map(t => `
+    <div class="theme-option" data-theme="${t.id}" onclick="window.SwamiAbhyasika.setTheme('${t.id}')" style="cursor:pointer; border:2px solid var(--border); border-radius:var(--radius); padding:12px; text-align:center; transition: all 0.2s;">
+      <div style="width:100%; height:60px; background:${t.bg}; border-radius:var(--radius-sm); margin-bottom:8px; border:1px solid rgba(128,128,128,0.25)"></div>
+      <div style="font-size:13px; font-weight:600;">${t.label}</div>
+    </div>
+  `).join('');
+  highlightActiveTheme(saved);
+}
+
 export async function renderSettings() {
   const list = document.getElementById('fee-tiers-list');
-  if (!list) return;
+  if (!list && !document.getElementById('theme-options-container')) return;
+
+  renderThemeOptions(DEFAULT_THEMES);
 
   try {
     const settings = await api.get('/settings');
+    const themes = settings.themes?.length ? settings.themes : DEFAULT_THEMES;
+    renderThemeOptions(themes);
     feeTiers = settings.fee_tiers || [{ gender: 'Male', shift: 'Day', months: 1, fee: 1000 }];
-    if (settings.theme) {
-      highlightActiveTheme(settings.theme);
-    }
+    const savedTheme = localStorage.getItem(SELECTED_THEME_KEY) || settings.theme || 'default';
+    localStorage.setItem(SELECTED_THEME_KEY, savedTheme);
+    applyTheme(savedTheme);
     
     // Sort by shift, then gender, then months
     feeTiers.sort((a, b) => {
@@ -91,6 +121,7 @@ export async function renderSettings() {
       return a.months - b.months;
     });
 
+    if (!list) return;
     list.innerHTML = feeTiers.map((tier, idx) => `
       <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 16px; background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius-sm);">
         <div>
@@ -105,7 +136,20 @@ export async function renderSettings() {
       </div>
     `).join('');
   } catch (err) {
-    showToast('Failed to load settings', 'red');
+    feeTiers = [{ gender: 'Male', shift: 'Day', months: 1, fee: 1000 }];
+    if (list) {
+      list.innerHTML = feeTiers.map((tier, idx) => `
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 16px; background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius-sm);">
+          <div>
+            <span class="status-pill badge-purple" style="font-size:10px; margin-right:8px;">${tier.shift}</span>
+            <span style="font-weight:600; font-size:14px;">${tier.gender} · ${tier.months} Month${tier.months > 1 ? 's' : ''}</span>
+            <span style="color:var(--text3); margin:0 8px;">·</span>
+            <span style="color:var(--green); font-weight:500;">${formatCurrency(tier.fee)}</span>
+          </div>
+        </div>
+      `).join('');
+    }
+    console.warn('Could not load remote settings, using defaults.', err);
   }
 }
 
@@ -171,13 +215,19 @@ export function getFeeForMonths(months, gender = 'Male', shift = 'Day') {
 }
 
 export async function initSettings() {
+  renderThemeOptions(DEFAULT_THEMES);
+  const savedTheme = localStorage.getItem(SELECTED_THEME_KEY) || 'default';
+  applyTheme(savedTheme);
+
   try {
     const settings = await api.get('/settings');
+    renderThemeOptions(settings.themes?.length ? settings.themes : DEFAULT_THEMES);
     feeTiers = settings.fee_tiers || [{ gender: 'Male', shift: 'Day', months: 1, fee: 1000 }];
-    if (settings.theme) {
-      applyTheme(settings.theme);
-    }
+    const theme = localStorage.getItem(SELECTED_THEME_KEY) || settings.theme || 'default';
+    localStorage.setItem(SELECTED_THEME_KEY, theme);
+    applyTheme(theme);
   } catch (err) {
-    console.error('Settings init failed');
+    feeTiers = [{ gender: 'Male', shift: 'Day', months: 1, fee: 1000 }];
+    console.warn('Settings init failed, using defaults.', err);
   }
 }

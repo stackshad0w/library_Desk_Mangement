@@ -7,6 +7,10 @@ const logger = require('../utils/logger');
  */
 function recordPayment(req, res) {
   const { student_id, amount, payment_date, payment_method, notes, new_due_date, from_date } = req.body;
+  const paymentAmount = Number(amount);
+  if (!paymentAmount || paymentAmount <= 0) {
+    return res.status(400).json({ message: 'Payment amount must be greater than zero' });
+  }
 
   const student = db.prepare('SELECT * FROM students WHERE id = ?').get(student_id);
   if (!student) {
@@ -19,26 +23,27 @@ function recordPayment(req, res) {
   db.prepare(`
     INSERT INTO payments (id, student_id, amount, payment_date, payment_method, notes, receipt_number, processed_by, from_date, till_date)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `).run(paymentId, student_id, amount, payment_date, payment_method, notes || '', receiptNumber, req.user.id, from_date || null, new_due_date || null);
+  `).run(paymentId, student_id, paymentAmount, payment_date, payment_method, notes || '', receiptNumber, req.user.id, from_date || null, new_due_date || null);
 
   // Update student:
   // If it's a renewal (new_due_date provided), we increase total_fees (the bill) and paid_fees.
   // If it's just paying off debt, we ONLY increase paid_fees.
   if (new_due_date) {
     db.prepare('UPDATE students SET total_fees = total_fees + ?, paid_fees = paid_fees + ?, due_date = ?, status = \'active\', updated_at = datetime(\'now\') WHERE id = ?')
-      .run(amount, amount, new_due_date, student_id);
+      .run(paymentAmount, paymentAmount, new_due_date, student_id);
   } else {
-    db.prepare('UPDATE students SET paid_fees = paid_fees + ?, status = \'active\', updated_at = datetime(\'now\') WHERE id = ?')
-      .run(amount, student_id);
+    const nextPaid = Math.min(Number(student.total_fees) || 0, (Number(student.paid_fees) || 0) + paymentAmount);
+    db.prepare('UPDATE students SET paid_fees = ?, status = \'active\', updated_at = datetime(\'now\') WHERE id = ?')
+      .run(nextPaid, student_id);
   }
 
   // Audit log
   db.prepare(`
     INSERT INTO audit_logs (id, user_id, action, entity_type, entity_id, new_value, ip_address)
     VALUES (?, ?, ?, ?, ?, ?, ?)
-  `).run(generateId(), req.user.id, 'PAYMENT', 'payment', paymentId, JSON.stringify({ student_id, amount, payment_method }), req.ip);
+  `).run(generateId(), req.user.id, 'PAYMENT', 'payment', paymentId, JSON.stringify({ student_id, amount: paymentAmount, payment_method }), req.ip);
 
-  logger.info('Payment recorded', { paymentId, studentId: student_id, amount, by: req.user.username });
+  logger.info('Payment recorded', { paymentId, studentId: student_id, amount: paymentAmount, by: req.user.username });
 
   // Return updated student + receipt info
   const updatedStudent = db.prepare('SELECT * FROM students WHERE id = ?').get(student_id);
@@ -48,7 +53,7 @@ function recordPayment(req, res) {
     payment: {
       id: paymentId,
       student_id,
-      amount,
+      amount: paymentAmount,
       payment_date,
       payment_method,
       notes,
@@ -60,7 +65,7 @@ function recordPayment(req, res) {
       studentName: updatedStudent.name,
       studentId: updatedStudent.id,
       course: updatedStudent.course,
-      amount,
+      amount: paymentAmount,
       date: payment_date,
       method: payment_method,
       notes,

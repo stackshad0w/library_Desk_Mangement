@@ -43,11 +43,20 @@ function renderCharts(data) {
 
   const feeCtx = document.getElementById('feeChart')?.getContext('2d');
   if (feeCtx) {
+    const feeLabels = ['Collected', 'Pending'];
+    const feeValues = [data.feesCollected, data.feesPending];
+    const feeColors = ['#22c55e', '#f59e0b'];
+    if (data.feesOverdue > 0) {
+      feeLabels.push('Overdue');
+      feeValues.push(data.feesOverdue);
+      feeColors.push('#ef4444');
+    }
+
     feeChart = new Chart(feeCtx, {
       type: 'doughnut',
       data: {
-        labels: ['Collected', 'Pending'],
-        datasets: [{ data: [data.feesCollected, data.feesPending], backgroundColor: ['#22c55e', '#f59e0b'], borderWidth: 0, hoverOffset: 4 }]
+        labels: feeLabels,
+        datasets: [{ data: feeValues, backgroundColor: feeColors, borderWidth: 0, hoverOffset: 4 }]
       },
       options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true, labels: { color: '#8b90a0', font: { size: 12 } } } } }
     });

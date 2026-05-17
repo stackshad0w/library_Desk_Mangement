@@ -131,28 +131,7 @@
             </div>
             <p style="font-size:13px; color:var(--text3); margin-bottom:20px;">Choose an eye-friendly theme for your study environment.</p>
 
-            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap:16px;">
-              <div class="theme-option" data-theme="default" onclick="window.SwamiAbhyasika.setTheme('default')" style="cursor:pointer; border:2px solid var(--border); border-radius:var(--radius); padding:12px; text-align:center; transition: all 0.2s;">
-                <div style="width:100%; height:60px; background:#0d0f14; border-radius:var(--radius-sm); margin-bottom:8px; border:1px solid rgba(255,255,255,0.1)"></div>
-                <div style="font-size:13px; font-weight:600;">Dark Default</div>
-              </div>
-              <div class="theme-option" data-theme="warm" onclick="window.SwamiAbhyasika.setTheme('warm')" style="cursor:pointer; border:2px solid var(--border); border-radius:var(--radius); padding:12px; text-align:center; transition: all 0.2s;">
-                <div style="width:100%; height:60px; background:#1b1817; border-radius:var(--radius-sm); margin-bottom:8px; border:1px solid rgba(255,255,255,0.1)"></div>
-                <div style="font-size:13px; font-weight:600;">Warm Retro</div>
-              </div>
-              <div class="theme-option" data-theme="light" onclick="window.SwamiAbhyasika.setTheme('light')" style="cursor:pointer; border:2px solid var(--border); border-radius:var(--radius); padding:12px; text-align:center; transition: all 0.2s;">
-                <div style="width:100%; height:60px; background:#ffffff; border-radius:var(--radius-sm); margin-bottom:8px; border:1px solid rgba(0,0,0,0.1)"></div>
-                <div style="font-size:13px; font-weight:600;">Standard Light</div>
-              </div>
-              <div class="theme-option" data-theme="sepia" onclick="window.SwamiAbhyasika.setTheme('sepia')" style="cursor:pointer; border:2px solid var(--border); border-radius:var(--radius); padding:12px; text-align:center; transition: all 0.2s;">
-                <div style="width:100%; height:60px; background:#f4ecd8; border-radius:var(--radius-sm); margin-bottom:8px; border:1px solid rgba(0,0,0,0.1)"></div>
-                <div style="font-size:13px; font-weight:600;">Soft Sepia</div>
-              </div>
-              <div class="theme-option" data-theme="cool" onclick="window.SwamiAbhyasika.setTheme('cool')" style="cursor:pointer; border:2px solid var(--border); border-radius:var(--radius); padding:12px; text-align:center; transition: all 0.2s;">
-                <div style="width:100%; height:60px; background:#0f172a; border-radius:var(--radius-sm); margin-bottom:8px; border:1px solid rgba(255,255,255,0.1)"></div>
-                <div style="font-size:13px; font-weight:600;">Cool Blue</div>
-              </div>
-            </div>
+            <div id="theme-options-container" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap:16px;"></div>
           </div>
         </div>
 

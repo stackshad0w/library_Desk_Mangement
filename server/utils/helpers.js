@@ -44,10 +44,13 @@ function generateId() {
 function getFeeStatus(student) {
   if (student.status === 'inactive') return 'Inactive';
 
+  const remaining = Math.round(((student.total_fees || 0) - (student.paid_fees || 0)) * 100) / 100;
+  if (remaining <= 0) return 'Paid';
+
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  // Check for overdue first
+  // Only unpaid balances can be overdue.
   if (student.due_date) {
     const due = new Date(student.due_date);
     due.setHours(0, 0, 0, 0);
@@ -58,10 +61,6 @@ function getFeeStatus(student) {
     }
   }
 
-  // Then check for debt
-  const remaining = Math.round((student.total_fees - (student.paid_fees || 0)) * 100) / 100;
-  if (remaining <= 0) return 'Paid';
-  
   return 'Pending';
 }
 
