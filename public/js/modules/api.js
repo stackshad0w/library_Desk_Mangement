@@ -3,6 +3,7 @@ import { API_BASE } from '../utils/constants.js';
 const LOCAL_SETTINGS_KEY = 'edutrack_settings';
 const LOCAL_STUDENTS_KEY = 'edutrack_students';
 const LOCAL_PAYMENTS_KEY = 'edutrack_payments';
+const LOCAL_SEATS_KEY = 'edutrack_seats';
 const LOCAL_USER = { id: 'local-admin', username: 'admin', role: 'admin' };
 const DEFAULT_SETTINGS = {
   theme: localStorage.getItem('selectedTheme') || 'default',
@@ -247,6 +248,40 @@ function localExportStudents() {
   return { students: getLocalStudents().map(enrichStudent) };
 }
 
+function getLocalSeats() {
+  return readJson(LOCAL_SEATS_KEY, []);
+}
+
+function saveLocalSeats(seats) {
+  writeJson(LOCAL_SEATS_KEY, seats);
+}
+
+function localSeatList(queryString) {
+  const params = new URLSearchParams(queryString);
+  const floor = ['basement', 'floor2'].includes(params.get('floor')) ? params.get('floor') : 'basement';
+  const date = params.get('date') || new Date().toISOString().split('T')[0];
+  const students = getLocalStudents();
+
+  let seats = getLocalSeats();
+  let changed = false;
+  seats = seats.map(b => {
+    if (b.status === 'active' && b.due_date && b.due_date < date) { changed = true; return { ...b, status: 'expired' }; }
+    return b;
+  });
+  if (changed) saveLocalSeats(seats);
+
+  const bookings = seats
+    .filter(b => b.floor === floor && b.status === 'active'
+      && (!b.from_date || b.from_date <= date) && (!b.due_date || b.due_date >= date))
+    .map(b => {
+      const s = students.find(x => x.id === b.student_id);
+      return { ...b, student_name: s?.name || '—', student_phone: s?.phone || '', student_course: s?.course || '' };
+    })
+    .sort((a, b) => a.seat_number - b.seat_number);
+
+  return { floor, date, total: 90, occupied: bookings.length, available: 90 - bookings.length, bookings };
+}
+
 function handleLocalRequest(endpoint, options = {}) {
   const method = options.method || 'GET';
   const [path, queryString = ''] = endpoint.split('?');
@@ -285,6 +320,47 @@ function handleLocalRequest(endpoint, options = {}) {
 
   if (path === '/students/courses' && method === 'GET') {
     return [...new Set(getLocalStudents().map(s => s.course).filter(Boolean))].sort();
+  }
+
+  if (path === '/seats' && method === 'GET') {
+    return localSeatList(queryString);
+  }
+
+  if (path === '/seats' && method === 'POST') {
+    const floor = ['basement', 'floor2'].includes(body.floor) ? body.floor : 'basement';
+    const seatNumber = parseInt(body.seat_number, 10);
+    if (!seatNumber || seatNumber < 1 || seatNumber > 90) {
+      const err = new Error('Invalid seat number'); err.status = 400; throw err;
+    }
+    const student = getLocalStudents().find(s => s.id === body.student_id);
+    if (!student) { const err = new Error('Student not found'); err.status = 404; throw err; }
+
+    const periodStart = body.from_date || new Date().toISOString().split('T')[0];
+    let seats = getLocalSeats();
+    const clash = seats.find(b => b.floor === floor && b.seat_number === seatNumber && b.status === 'active'
+      && (!b.due_date || b.due_date >= periodStart));
+    if (clash) { const err = new Error(`Seat ${seatNumber} is already occupied`); err.status = 409; throw err; }
+
+    seats = seats.map(b => (b.student_id === body.student_id && b.status === 'active') ? { ...b, status: 'cancelled' } : b);
+    const booking = {
+      id: `SEAT-${Date.now()}`, floor, seat_number: seatNumber, student_id: body.student_id,
+      slot: body.slot || 'Full Day', from_date: body.from_date || null, due_date: body.due_date || null,
+      status: 'active', created_at: new Date().toISOString(),
+      student_name: student.name, student_phone: student.phone, student_course: student.course,
+    };
+    seats.push(booking);
+    saveLocalSeats(seats);
+    return { message: `Seat ${seatNumber} booked for ${student.name}`, booking };
+  }
+
+  const seatMatch = path.match(/^\/seats\/([^/]+)$/);
+  if (seatMatch && method === 'DELETE') {
+    const id = seatMatch[1];
+    let seats = getLocalSeats();
+    if (!seats.find(b => b.id === id)) { const err = new Error('Booking not found'); err.status = 404; throw err; }
+    seats = seats.map(b => b.id === id ? { ...b, status: 'cancelled' } : b);
+    saveLocalSeats(seats);
+    return { message: 'Seat released' };
   }
 
   if (path === '/students' && method === 'GET') {

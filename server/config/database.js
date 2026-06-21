@@ -131,6 +131,19 @@ function initialize(options = {}) {
       value TEXT NOT NULL
     );
 
+    CREATE TABLE IF NOT EXISTS seat_bookings (
+      id TEXT PRIMARY KEY,
+      floor TEXT NOT NULL DEFAULT 'basement',
+      seat_number INTEGER NOT NULL,
+      student_id TEXT REFERENCES students(id) ON DELETE CASCADE,
+      slot TEXT DEFAULT 'Full Day',
+      from_date TEXT,
+      due_date TEXT,
+      status TEXT CHECK(status IN ('active','cancelled','expired')) NOT NULL DEFAULT 'active',
+      created_by TEXT REFERENCES users(id),
+      created_at TEXT DEFAULT (datetime('now'))
+    );
+
     CREATE INDEX IF NOT EXISTS idx_students_course ON students(course);
     CREATE INDEX IF NOT EXISTS idx_students_status ON students(status);
     CREATE INDEX IF NOT EXISTS idx_students_name ON students(name);
@@ -141,6 +154,9 @@ function initialize(options = {}) {
     CREATE INDEX IF NOT EXISTS idx_audit_created ON audit_logs(created_at);
     CREATE INDEX IF NOT EXISTS idx_sessions_token ON sessions(token);
     CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);
+    CREATE INDEX IF NOT EXISTS idx_seats_floor ON seat_bookings(floor);
+    CREATE INDEX IF NOT EXISTS idx_seats_student ON seat_bookings(student_id);
+    CREATE INDEX IF NOT EXISTS idx_seats_status ON seat_bookings(status);
   `);
 
   // Seed default fee tiers if missing
