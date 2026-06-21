@@ -1,0 +1,4 @@
+# Ensure Windows batch files always check out with CRLF so they run reliably,
+# regardless of the user's core.autocrlf setting.
+*.bat text eol=crlf
+*.cmd text eol=crlf

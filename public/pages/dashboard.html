@@ -5,6 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard — Swami Abhyasika</title>
   <meta name="description" content="Swami Abhyasika Student Management Dashboard">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <meta name="theme-color" content="#0d0f14">
+  <link rel="icon" href="/img/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/img/icon.svg">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Swami SMS">
+  <meta name="mobile-web-app-capable" content="yes">
   <link rel="stylesheet" href="/css/variables.css">
   <link rel="stylesheet" href="/css/global.css">
   <link rel="stylesheet" href="/css/components.css">
@@ -15,6 +23,11 @@
   <script>
     /* Prevent flash of wrong theme */
     (function(){var t=localStorage.getItem('edutrack-theme');if(t==='light')document.documentElement.setAttribute('data-theme','light');}());
+  </script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function () { navigator.serviceWorker.register('/sw.js').catch(function () {}); });
+    }
   </script>
   <style>body{display:flex;}</style>
 </head>
@@ -40,6 +53,10 @@
       <div class="nav-item" data-page="admission-form">
         <svg fill="currentColor" viewBox="0 0 24 24"><path d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/></svg>
         New Admission
+      </div>
+      <div class="nav-item" data-page="seats">
+        <svg fill="currentColor" viewBox="0 0 24 24"><path d="M4 18v3h3v-3h10v3h3v-6H4zm15-8h3v3h-3zM2 10h3v3H2zm15 3H7V5c0-1.1.9-2 2-2h6c1.1 0 2 .9 2 2z"/></svg>
+        Library Seats
       </div>
       <div class="nav-section-label" style="margin-top:12px">Finance</div>
       <div class="nav-item" data-page="fees">
@@ -101,6 +118,12 @@
     </svg>
     <input type="text" placeholder="Search students..." id="global-search">
   </div>
+
+  <button type="button" class="cmd-trigger" id="cmd-trigger" title="Command palette (Ctrl/Cmd + K)">
+    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <span class="cmd-trigger-label">Quick find</span>
+    <kbd>Ctrl K</kbd>
+  </button>
 
   <button class="btn btn-primary" onclick="window.SwamiAbhyasika.resetForm(); window.SwamiAbhyasika._editingId = null; window.SwamiAbhyasika.showPage('admission-form')">
     <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24">
@@ -245,8 +268,12 @@
 
       <!-- REMINDERS -->
       <div class="page" id="page-reminders">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap">
           <div><h2 style="font-size:16px;font-weight:600;margin-bottom:4px">Automated Reminders</h2><p style="font-size:13px;color:var(--text3)">Students with upcoming or overdue fees</p></div>
+          <button class="btn btn-success wa-btn" id="bulk-remind-btn" style="display:none" onclick="window.SwamiAbhyasika.openBulkReminder()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.945C.16 5.335 5.495 0 12.05 0a11.817 11.817 0 018.413 3.488 11.824 11.824 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 001.519 5.26l-.999 3.648 3.97-1.607zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/></svg>
+            Send all on WhatsApp
+          </button>
         </div>
         <div id="reminders-list"></div>
       </div>
@@ -270,6 +297,24 @@
               <button class="btn btn-ghost" onclick="window.SwamiAbhyasika.exportCSV()">Download</button>
             </div>
           </div>
+        </div>
+      </div>
+
+      <!-- LIBRARY SEATS -->
+      <div class="page" id="page-seats">
+        <div class="seat-toolbar">
+          <div class="seat-floor-tabs">
+            <button type="button" class="seat-floor-tab active" data-floor="basement">Basement</button>
+            <button type="button" class="seat-floor-tab" data-floor="floor2">Floor 2</button>
+          </div>
+          <div class="seat-legend">
+            <span><i class="seat-dot avail"></i><span id="seat-avail-count">— available</span></span>
+            <span><i class="seat-dot occ"></i><span id="seat-occ-count">— occupied</span></span>
+          </div>
+        </div>
+        <div class="table-card" style="overflow-x:auto">
+          <div class="seat-screen">FRONT · ENTRANCE</div>
+          <div id="seat-grid" class="seat-grid"></div>
         </div>
       </div>
     </div>
@@ -312,6 +357,58 @@
     </div>
   </div>
 
+  <!-- BULK WHATSAPP REMINDER MODAL -->
+  <div class="modal-overlay" id="bulk-reminder-modal">
+    <div class="modal" style="max-width:560px">
+      <div class="modal-header">
+        <div class="modal-title">Bulk WhatsApp Reminders</div>
+        <button class="close-btn" onclick="window.SwamiAbhyasika.closeBulkModal()">×</button>
+      </div>
+      <p style="font-size:13px;color:var(--text2);margin-bottom:12px">Opens each student's WhatsApp chat one-by-one with a pre-filled reminder, ~3s apart. Please <strong>allow pop-ups</strong> for this site so every chat can open.</p>
+      <div id="bulk-progress-wrap" style="display:none;margin-bottom:14px">
+        <div class="progress-bar"><div class="progress-fill" id="bulk-progress-bar" style="width:0%;background:var(--green)"></div></div>
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text3);margin-top:5px">
+          <span id="bulk-progress-label">Ready</span><span id="bulk-progress-eta"></span>
+        </div>
+      </div>
+      <div id="bulk-list" style="max-height:300px;overflow-y:auto;display:flex;flex-direction:column;gap:8px"></div>
+      <div class="form-actions">
+        <span id="bulk-footer-note" style="font-size:12px;color:var(--text3);flex:1;text-align:left"></span>
+        <button class="btn btn-ghost" onclick="window.SwamiAbhyasika.closeBulkModal()">Close</button>
+        <button class="btn btn-success" id="bulk-send-btn" onclick="window.SwamiAbhyasika.startBulkSend()">Start Sending</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SEAT MODAL -->
+  <div class="modal-overlay" id="seat-modal">
+    <div class="modal" style="max-width:460px">
+      <div class="modal-header">
+        <div class="modal-title" id="seat-modal-title">Seat</div>
+        <button class="close-btn" id="seat-modal-close">×</button>
+      </div>
+      <div id="seat-info"></div>
+      <div id="seat-assign">
+        <div class="form-group" style="position:relative">
+          <label>Find Student</label>
+          <input type="text" id="seat-search" placeholder="Search by name, phone or ID…" autocomplete="off">
+          <div id="seat-search-results" class="seat-search-results"></div>
+        </div>
+        <div id="seat-chosen" class="seat-chosen" style="display:none"></div>
+        <div class="form-grid">
+          <div class="form-group"><label>Slot</label><select id="seat-slot"></select></div>
+          <div class="form-group"><label>From Date</label><input type="date" id="seat-from"></div>
+          <div class="form-group"><label>Until Date</label><input type="date" id="seat-due"></div>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-ghost" id="seat-modal-cancel">Cancel</button>
+        <button class="btn btn-danger" id="seat-release-btn" style="display:none">Release Seat</button>
+        <button class="btn btn-primary" id="seat-book-btn" style="display:none">Book Seat</button>
+      </div>
+    </div>
+  </div>
+
   <!-- CONFIRM MODAL -->
   <div class="modal-overlay" id="confirm-modal">
     <div class="modal" style="max-width: 400px; padding: 24px;">
@@ -320,6 +417,24 @@
       <div class="form-actions" style="margin-top:0;">
         <button class="btn btn-ghost" onclick="window.SwamiAbhyasika.closeConfirm(false)">Cancel</button>
         <button class="btn btn-primary" id="confirm-btn" onclick="window.SwamiAbhyasika.closeConfirm(true)">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- COMMAND PALETTE -->
+  <div id="cmd-overlay">
+    <div id="cmd-box">
+      <div id="cmd-input-wrap">
+        <svg width="18" height="18" fill="none" stroke="var(--text3)" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0;"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input id="cmd-input" placeholder="Search students, jump to a page…" autocomplete="off">
+        <button type="button" class="cmd-esc" id="cmd-close-btn">ESC</button>
+      </div>
+      <div id="cmd-results"></div>
+      <div id="cmd-footer">
+        <span><kbd>↑↓</kbd> Navigate</span>
+        <span><kbd>↵</kbd> Open</span>
+        <span><kbd>Esc</kbd> Close</span>
+        <span><kbd>Ctrl</kbd><kbd>K</kbd> Toggle</span>
       </div>
     </div>
   </div>

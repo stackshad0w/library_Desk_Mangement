@@ -5,6 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login — Swami Abhyasika</title>
   <meta name="description" content="Sign in to Swami Abhyasika Student Management System">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <meta name="theme-color" content="#0d0f14">
+  <link rel="icon" href="/img/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/img/icon.svg">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Swami SMS">
+  <meta name="mobile-web-app-capable" content="yes">
   <link rel="stylesheet" href="/css/variables.css">
   <link rel="stylesheet" href="/css/global.css">
   <link rel="stylesheet" href="/css/components.css">
@@ -12,6 +19,11 @@
   <script>
     /* Prevent flash of wrong theme */
     (function(){var t=localStorage.getItem('edutrack-theme');if(t==='light')document.documentElement.setAttribute('data-theme','light');}());
+  </script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function () { navigator.serviceWorker.register('/sw.js').catch(function () {}); });
+    }
   </script>
 </head>
 <body>
