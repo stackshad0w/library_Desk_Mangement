@@ -183,4 +183,73 @@ function getMe(req, res) {
   res.json({ user: req.user });
 }
 
-module.exports = { register, login, logout, refreshToken, getMe };
+/**
+ * GET /api/auth/users — list all staff accounts (admin only).
+ */
+function listUsers(req, res) {
+  const users = db.prepare(
+    'SELECT id, username, email, role, is_active, last_login, created_at FROM users ORDER BY created_at'
+  ).all();
+  res.json({ users });
+}
+
+/**
+ * PUT /api/auth/users/:id — change a user's role or active flag (admin only).
+ */
+function updateUser(req, res) {
+  const { id } = req.params;
+  const target = db.prepare('SELECT * FROM users WHERE id = ?').get(id);
+  if (!target) return res.status(404).json({ message: 'User not found' });
+
+  const { role, is_active } = req.body;
+  const validRoles = ['admin', 'teacher', 'accountant'];
+  if (role !== undefined && !validRoles.includes(role)) {
+    return res.status(400).json({ message: 'Invalid role' });
+  }
+
+  const willBeActive = is_active !== undefined ? (is_active ? 1 : 0) : target.is_active;
+  const willBeRole = role !== undefined ? role : target.role;
+
+  // Never strand the system without an admin.
+  if (target.role === 'admin') {
+    const activeAdmins = db.prepare("SELECT COUNT(*) c FROM users WHERE role='admin' AND is_active=1").get().c;
+    const stillAdmin = willBeRole === 'admin' && willBeActive === 1;
+    if (activeAdmins <= 1 && !stillAdmin) {
+      return res.status(400).json({ message: 'Cannot demote or deactivate the last active admin' });
+    }
+  }
+  if (id === req.user.id && willBeActive === 0) {
+    return res.status(400).json({ message: 'You cannot deactivate your own account' });
+  }
+
+  db.prepare("UPDATE users SET role = COALESCE(?, role), is_active = COALESCE(?, is_active), updated_at = datetime('now') WHERE id = ?")
+    .run(role || null, is_active !== undefined ? (is_active ? 1 : 0) : null, id);
+  logger.info('User updated', { userId: id, by: req.user.username });
+  res.json({ message: 'User updated' });
+}
+
+/**
+ * DELETE /api/auth/users/:id — remove a staff account (admin only).
+ */
+function deleteUser(req, res) {
+  const { id } = req.params;
+  if (id === req.user.id) return res.status(400).json({ message: 'You cannot delete your own account' });
+
+  const target = db.prepare('SELECT * FROM users WHERE id = ?').get(id);
+  if (!target) return res.status(404).json({ message: 'User not found' });
+
+  if (target.role === 'admin') {
+    const activeAdmins = db.prepare("SELECT COUNT(*) c FROM users WHERE role='admin' AND is_active=1").get().c;
+    if (activeAdmins <= 1) return res.status(400).json({ message: 'Cannot delete the last active admin' });
+  }
+
+  try {
+    db.prepare('DELETE FROM users WHERE id = ?').run(id);
+  } catch {
+    return res.status(409).json({ message: 'This user has created records. Deactivate them instead of deleting.' });
+  }
+  logger.info('User deleted', { userId: id, by: req.user.username });
+  res.json({ message: 'User deleted' });
+}
+
+module.exports = { register, login, logout, refreshToken, getMe, listUsers, updateUser, deleteUser };

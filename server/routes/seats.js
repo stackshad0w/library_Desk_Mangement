@@ -13,9 +13,11 @@ router.get('/', seatController.getAll);
 
 router.post('/',
   authorize('admin', 'teacher'),
-  body('seat_number').isInt({ min: 1, max: 90 }).withMessage('Seat number must be between 1 and 90'),
+  // The floor id and per-floor seat range are validated against the configurable
+  // layout inside the controller, so only basic shape is checked here.
+  body('seat_number').isInt({ min: 1 }).withMessage('Seat number must be a positive integer'),
   body('student_id').notEmpty(),
-  body('floor').optional().isIn(['basement', 'floor2']),
+  body('floor').notEmpty().withMessage('Floor is required'),
   body('from_date').optional({ values: 'falsy' }).isDate(),
   body('due_date').optional({ values: 'falsy' }).isDate(),
   validate,

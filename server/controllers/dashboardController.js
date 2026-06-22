@@ -5,17 +5,17 @@ const { getFeeStatus } = require('../utils/helpers');
  * GET /api/dashboard/stats
  */
 function getStats(req, res) {
-  const totalStudents = db.prepare('SELECT COUNT(*) as cnt FROM students').get().cnt;
+  const totalStudents = db.prepare('SELECT COUNT(*) as cnt FROM students WHERE archived = 0').get().cnt;
 
   // New this month
   const now = new Date();
   const monthStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
   const newThisMonth = db.prepare(
-    'SELECT COUNT(*) as cnt FROM students WHERE admission_date >= ?'
+    'SELECT COUNT(*) as cnt FROM students WHERE archived = 0 AND admission_date >= ?'
   ).get(monthStart).cnt;
 
   // Status breakdown
-  const students = db.prepare('SELECT total_fees, paid_fees, due_date, status FROM students').all();
+  const students = db.prepare('SELECT total_fees, paid_fees, due_date, status FROM students WHERE archived = 0').all();
   let paidCount = 0, pendingCount = 0, overdueCount = 0;
   let feesPending = 0, feesOverdue = 0;
   const feesCollected = db.prepare('SELECT COALESCE(SUM(amount), 0) as total FROM payments').get().total;
@@ -38,12 +38,12 @@ function getStats(req, res) {
 
   // Course distribution
   const courseData = db.prepare(
-    'SELECT course, COUNT(*) as count FROM students GROUP BY course ORDER BY count DESC'
+    'SELECT course, COUNT(*) as count FROM students WHERE archived = 0 GROUP BY course ORDER BY count DESC'
   ).all();
 
   // Recent admissions
   const recent = db.prepare(
-    'SELECT id, name, course, admission_date, total_fees, paid_fees, due_date FROM students ORDER BY created_at DESC LIMIT 5'
+    'SELECT id, name, course, admission_date, total_fees, paid_fees, due_date FROM students WHERE archived = 0 ORDER BY created_at DESC LIMIT 5'
   ).all().map(s => ({ ...s, fee_status: getFeeStatus(s) }));
 
   // Monthly revenue (last 6 months)
@@ -80,7 +80,7 @@ function getStats(req, res) {
  * GET /api/reminders
  */
 function getReminders(req, res) {
-  const students = db.prepare('SELECT * FROM students').all();
+  const students = db.prepare('SELECT * FROM students WHERE archived = 0').all();
   const today = new Date();
   const soon = new Date();
   soon.setDate(today.getDate() + 5);

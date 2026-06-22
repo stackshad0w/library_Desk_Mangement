@@ -30,6 +30,7 @@ router.post('/',
   body('paid_fees').optional().isFloat({ min: 0 }),
   body('admission_date').optional().isDate(),
   body('due_date').optional({ values: 'falsy' }).isDate(),
+  body('photo').optional({ values: 'falsy' }).isLength({ max: 1500000 }).withMessage('Photo is too large (please use a smaller image)'),
   validate,
   studentController.create
 );
@@ -42,6 +43,7 @@ router.put('/:id',
   body('email').optional({ values: 'falsy' }).isEmail().normalizeEmail(),
   body('total_fees').optional().isFloat({ min: 0 }),
   body('status').optional().isIn(['active', 'inactive', 'graduated']),
+  body('photo').optional({ values: 'falsy' }).isLength({ max: 1500000 }).withMessage('Photo is too large (please use a smaller image)'),
   validate,
   studentController.update
 );

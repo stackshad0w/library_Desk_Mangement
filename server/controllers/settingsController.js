@@ -17,7 +17,7 @@ exports.getSettings = (req, res) => {
   }
 };
 
-const ALLOWED_SETTINGS_KEYS = ['fee_tiers', 'theme'];
+const ALLOWED_SETTINGS_KEYS = ['fee_tiers', 'theme', 'seat_config'];
 
 exports.updateSetting = (req, res) => {
   const { key, value } = req.body;
@@ -56,6 +56,32 @@ exports.updateSetting = (req, res) => {
       }
       if (tier.shift && !validShifts.includes(tier.shift)) {
         return res.status(400).json({ message: `Invalid shift in tier: ${tier.shift}` });
+      }
+    }
+  }
+
+  // Validate seat_config structure (configurable library layout)
+  if (key === 'seat_config') {
+    if (!value || !Array.isArray(value.floors) || value.floors.length === 0) {
+      return res.status(400).json({ message: 'seat_config must have a non-empty floors array' });
+    }
+    const ids = new Set();
+    for (const f of value.floors) {
+      if (!f.id || typeof f.id !== 'string' || !/^[a-z0-9_-]+$/i.test(f.id)) {
+        return res.status(400).json({ message: 'Each floor needs a simple id (letters, numbers, - or _)' });
+      }
+      if (ids.has(f.id)) {
+        return res.status(400).json({ message: `Duplicate floor id: ${f.id}` });
+      }
+      ids.add(f.id);
+      if (!f.label || typeof f.label !== 'string') {
+        return res.status(400).json({ message: 'Each floor needs a label' });
+      }
+      if (!Number.isInteger(f.seats) || f.seats < 1 || f.seats > 1000) {
+        return res.status(400).json({ message: 'Each floor needs seats between 1 and 1000' });
+      }
+      if (!Number.isInteger(f.cols) || f.cols < 1 || f.cols > 30) {
+        return res.status(400).json({ message: 'Each floor needs columns between 1 and 30' });
       }
     }
   }

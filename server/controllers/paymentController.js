@@ -6,7 +6,7 @@ const logger = require('../utils/logger');
  * POST /api/payments
  */
 function recordPayment(req, res) {
-  const { student_id, amount, payment_date, payment_method, notes, new_due_date, from_date } = req.body;
+  const { student_id, amount, payment_date, payment_method, notes, new_due_date, from_date, period_fee } = req.body;
   const paymentAmount = Number(amount);
   if (!paymentAmount || paymentAmount <= 0) {
     return res.status(400).json({ message: 'Payment amount must be greater than zero' });
@@ -17,31 +17,41 @@ function recordPayment(req, res) {
     return res.status(404).json({ message: 'Student not found' });
   }
 
+  // The "charge" is the price billed for this subscription period. When it isn't
+  // supplied we fall back to the amount paid (so a full payment still nets to zero).
+  const charge = Number(period_fee) > 0 ? Number(period_fee) : paymentAmount;
+
   const paymentId = generateId();
   const receiptNumber = generateReceiptNumber();
 
-  db.prepare(`
-    INSERT INTO payments (id, student_id, amount, payment_date, payment_method, notes, receipt_number, processed_by, from_date, till_date)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `).run(paymentId, student_id, paymentAmount, payment_date, payment_method, notes || '', receiptNumber, req.user.id, from_date || null, new_due_date || null);
+  // Insert payment, update the student's balance and write the audit log atomically —
+  // a crash mid-way must never leave money recorded without the balance reflecting it.
+  const recordTx = db.transaction(() => {
+    db.prepare(`
+      INSERT INTO payments (id, student_id, amount, charge, payment_date, payment_method, notes, receipt_number, processed_by, from_date, till_date)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(paymentId, student_id, paymentAmount, charge, payment_date, payment_method, notes || '', receiptNumber, req.user.id, from_date || null, new_due_date || null);
 
-  // Update student:
-  // If it's a renewal (new_due_date provided), we increase total_fees (the bill) and paid_fees.
-  // If it's just paying off debt, we ONLY increase paid_fees.
-  if (new_due_date) {
-    db.prepare('UPDATE students SET total_fees = total_fees + ?, paid_fees = paid_fees + ?, due_date = ?, status = \'active\', updated_at = datetime(\'now\') WHERE id = ?')
-      .run(paymentAmount, paymentAmount, new_due_date, student_id);
-  } else {
-    const nextPaid = Math.min(Number(student.total_fees) || 0, (Number(student.paid_fees) || 0) + paymentAmount);
-    db.prepare('UPDATE students SET paid_fees = ?, status = \'active\', updated_at = datetime(\'now\') WHERE id = ?')
-      .run(nextPaid, student_id);
-  }
+    // Update student:
+    // Renewal (new_due_date): bill the full period fee (`charge`) and credit only what
+    // was actually paid, so a partial renewal correctly leaves a pending balance.
+    // Debt payment (no new_due_date): only increase paid_fees.
+    if (new_due_date) {
+      db.prepare('UPDATE students SET total_fees = total_fees + ?, paid_fees = paid_fees + ?, due_date = ?, status = \'active\', updated_at = datetime(\'now\') WHERE id = ?')
+        .run(charge, paymentAmount, new_due_date, student_id);
+    } else {
+      const nextPaid = Math.min(Number(student.total_fees) || 0, (Number(student.paid_fees) || 0) + paymentAmount);
+      db.prepare('UPDATE students SET paid_fees = ?, status = \'active\', updated_at = datetime(\'now\') WHERE id = ?')
+        .run(nextPaid, student_id);
+    }
 
-  // Audit log
-  db.prepare(`
-    INSERT INTO audit_logs (id, user_id, action, entity_type, entity_id, new_value, ip_address)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
-  `).run(generateId(), req.user.id, 'PAYMENT', 'payment', paymentId, JSON.stringify({ student_id, amount: paymentAmount, payment_method }), req.ip);
+    // Audit log
+    db.prepare(`
+      INSERT INTO audit_logs (id, user_id, action, entity_type, entity_id, new_value, ip_address)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `).run(generateId(), req.user.id, 'PAYMENT', 'payment', paymentId, JSON.stringify({ student_id, amount: paymentAmount, charge, payment_method }), req.ip);
+  });
+  recordTx();
 
   logger.info('Payment recorded', { paymentId, studentId: student_id, amount: paymentAmount, by: req.user.username });
 
@@ -116,12 +126,13 @@ function deletePayment(req, res) {
     return res.status(404).json({ message: 'Payment not found' });
   }
 
-  // Reverse the payment from student
-  // We need to know if this payment originally increased total_fees.
-  // Payments with till_date (new_due_date) are renewals.
+  // Reverse the payment from student.
+  // Renewals (those with a till_date) billed the period fee (`charge`) to total_fees
+  // and credited the amount paid, so undo each side with the figure it used.
   if (payment.till_date) {
+    const billed = payment.charge != null ? payment.charge : payment.amount;
     db.prepare('UPDATE students SET total_fees = total_fees - ?, paid_fees = paid_fees - ?, updated_at = datetime(\'now\') WHERE id = ?')
-      .run(payment.amount, payment.amount, payment.student_id);
+      .run(billed, payment.amount, payment.student_id);
   } else {
     db.prepare('UPDATE students SET paid_fees = paid_fees - ?, updated_at = datetime(\'now\') WHERE id = ?')
       .run(payment.amount, payment.student_id);

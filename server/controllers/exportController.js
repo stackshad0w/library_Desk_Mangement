@@ -6,7 +6,7 @@ const { getFeeStatus } = require('../utils/helpers');
  * Returns data in JSON — frontend handles file generation using jsPDF/XLSX
  */
 function exportStudents(req, res) {
-  const students = db.prepare('SELECT * FROM students ORDER BY created_at DESC').all();
+  const students = db.prepare('SELECT * FROM students WHERE archived = 0 ORDER BY created_at DESC').all();
 
   const data = students.map(s => ({
     id: s.id,
@@ -15,6 +15,8 @@ function exportStudents(req, res) {
     phone: s.phone,
     email: s.email,
     course: s.course,
+    gender: s.gender,
+    shift: s.shift,
     admission_date: s.admission_date,
     total_fees: s.total_fees,
     paid_fees: s.paid_fees,

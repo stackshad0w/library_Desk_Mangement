@@ -4,12 +4,6 @@ import { showToast } from '../utils/toast.js';
 
 let feeChart = null, courseChart = null;
 
-window.addEventListener('storage', (e) => {
-  if (e.key === 'edutrack_students' && document.getElementById('page-dashboard')?.classList.contains('active')) {
-    renderDashboard();
-  }
-});
-
 export async function renderDashboard() {
   try {
     const data = await api.get('/dashboard/stats');
@@ -49,6 +43,12 @@ function renderCharts(data) {
   if (feeChart) feeChart.destroy();
   if (courseChart) courseChart.destroy();
 
+  // Pull colors from the active theme so charts stay readable in light/sepia themes.
+  const css = getComputedStyle(document.body);
+  const tickColor = css.getPropertyValue('--text2').trim() || '#8b90a0';
+  const gridColor = css.getPropertyValue('--border2').trim() || 'rgba(128,128,128,0.15)';
+  const accent = css.getPropertyValue('--accent').trim() || '#6c63ff';
+
   const feeCtx = document.getElementById('feeChart')?.getContext('2d');
   if (feeCtx) {
     const feeLabels = ['Collected', 'Pending'];
@@ -66,7 +66,7 @@ function renderCharts(data) {
         labels: feeLabels,
         datasets: [{ data: feeValues, backgroundColor: feeColors, borderWidth: 0, hoverOffset: 4 }]
       },
-      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true, labels: { color: '#8b90a0', font: { size: 12 } } } } }
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true, labels: { color: tickColor, font: { size: 12 } } } } }
     });
   }
 
@@ -76,12 +76,12 @@ function renderCharts(data) {
       type: 'bar',
       data: {
         labels: data.courseDistribution.map(c => c.course),
-        datasets: [{ label: 'Students', data: data.courseDistribution.map(c => c.count), backgroundColor: '#6c63ff', borderRadius: 4 }]
+        datasets: [{ label: 'Students', data: data.courseDistribution.map(c => c.count), backgroundColor: accent, borderRadius: 4 }]
       },
       options: {
         responsive: true, maintainAspectRatio: false,
         plugins: { legend: { display: false } },
-        scales: { x: { ticks: { color: '#8b90a0', font: { size: 11 } }, grid: { color: 'rgba(255,255,255,0.05)' } }, y: { ticks: { color: '#8b90a0', stepSize: 1 }, grid: { color: 'rgba(255,255,255,0.05)' } } }
+        scales: { x: { ticks: { color: tickColor, font: { size: 11 } }, grid: { color: gridColor } }, y: { ticks: { color: tickColor, stepSize: 1 }, grid: { color: gridColor } } }
       }
     });
   }

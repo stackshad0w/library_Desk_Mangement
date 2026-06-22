@@ -59,6 +59,8 @@ export async function openPaymentModal(id) {
     document.getElementById('payment-student-info').innerHTML =
       `<strong>${s.name}</strong> (${s.id}) · ${s.course}<br>Total Fees: ${formatCurrency(s.total_fees)} · <span style="color:${balance > 0 ? 'var(--amber)' : 'var(--green)'}">Pending: ${formatCurrency(balance)}</span>`;
     document.getElementById('pay-amount').value = '';
+    const periodFeeEl = document.getElementById('pay-period-fee');
+    if (periodFeeEl) periodFeeEl.value = '';
     document.getElementById('pay-date').value = new Date().toISOString().split('T')[0];
     const nextDue = document.getElementById('pay-next-due-date');
     if (nextDue) nextDue.value = s.due_date || '';
@@ -66,6 +68,7 @@ export async function openPaymentModal(id) {
     if (fromDate) fromDate.value = s.due_date || new Date().toISOString().split('T')[0];
     const months = document.getElementById('pay-months');
     if (months) months.value = '';
+    document.querySelectorAll('#pay-month-chips .chip').forEach(c => c.classList.remove('active'));
     document.getElementById('pay-notes').value = '';
     document.getElementById('receipt-area').innerHTML = '';
     const shiftEl = document.getElementById('pay-shift');
@@ -87,12 +90,17 @@ export function closeModal(id) {
 
 export async function savePayment() {
   const amount = parseFloat(document.getElementById('pay-amount').value);
+  const periodFee = parseFloat(document.getElementById('pay-period-fee')?.value);
   const nextDueInput = document.getElementById('pay-next-due-date');
   const shift = document.getElementById('pay-shift')?.value;
-  
-  if (!amount || amount <= 0) { showToast('Enter a valid amount', 'red'); return; }
+
+  if (!amount || amount <= 0) { showToast('Enter a valid amount paid', 'red'); return; }
   if (!nextDueInput || !nextDueInput.value) {
     showToast('Please specify Next Due Date or Months', 'red');
+    return;
+  }
+  if (!periodFee || periodFee <= 0) {
+    showToast('Enter the subscription fee for this period', 'red');
     return;
   }
 
@@ -105,11 +113,12 @@ export async function savePayment() {
     const payload = {
       student_id: payingStudentId,
       amount,
+      period_fee: periodFee,
       payment_date: document.getElementById('pay-date').value,
       payment_method: document.getElementById('pay-method').value,
       notes: document.getElementById('pay-notes').value,
     };
-    
+
     const nextDue = document.getElementById('pay-next-due-date');
     if (nextDue && nextDue.value) {
       payload.new_due_date = nextDue.value;
@@ -174,10 +183,22 @@ export function calcNextDueDate() {
     date.setMonth(date.getMonth() + monthsVal);
     document.getElementById('pay-next-due-date').value = date.toISOString().split('T')[0];
 
-    // AUTO-CALCULATE FEE
+    // AUTO-CALCULATE FEE: fill the subscription fee for the period, and default the
+    // amount paid to the full fee (the operator can lower it for a partial payment).
     const shift = document.getElementById('pay-shift')?.value || 'Day';
     const suggestedFee = getFeeForMonths(monthsVal, payingStudentGender, shift);
+    const periodFeeInput = document.getElementById('pay-period-fee');
+    if (periodFeeInput) periodFeeInput.value = suggestedFee;
     const amountInput = document.getElementById('pay-amount');
     if (amountInput) amountInput.value = suggestedFee;
   }
+}
+
+/** Quick-pick handler for the month chips in the payment modal. */
+export function setPayMonths(n) {
+  const monthsEl = document.getElementById('pay-months');
+  if (monthsEl) monthsEl.value = n;
+  document.querySelectorAll('#pay-month-chips .chip').forEach(c =>
+    c.classList.toggle('active', Number(c.dataset.months) === Number(n)));
+  calcNextDueDate();
 }

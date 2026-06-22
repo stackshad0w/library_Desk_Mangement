@@ -85,6 +85,8 @@ function initialize(options = {}) {
       gender TEXT CHECK(gender IN ('Male','Female','Other')),
       shift TEXT CHECK(shift IN ('Day','Night','Both')),
       status TEXT CHECK(status IN ('active','inactive','graduated')) DEFAULT 'active',
+      photo TEXT,
+      archived INTEGER DEFAULT 0,
       created_by TEXT REFERENCES users(id),
       created_at TEXT DEFAULT (datetime('now')),
       updated_at TEXT DEFAULT (datetime('now'))
@@ -94,6 +96,7 @@ function initialize(options = {}) {
       id TEXT PRIMARY KEY,
       student_id TEXT REFERENCES students(id) ON DELETE CASCADE,
       amount REAL NOT NULL,
+      charge REAL,
       payment_date TEXT NOT NULL,
       payment_method TEXT CHECK(payment_method IN ('cash','online_transfer','cheque','upi','dd')) NOT NULL,
       from_date TEXT,
@@ -168,8 +171,11 @@ function initialize(options = {}) {
   // Auto-migrate schema if columns are missing
   try { db.exec("ALTER TABLE payments ADD COLUMN from_date TEXT;"); } catch (e) {}
   try { db.exec("ALTER TABLE payments ADD COLUMN till_date TEXT;"); } catch (e) {}
+  try { db.exec("ALTER TABLE payments ADD COLUMN charge REAL;"); } catch (e) {}
   try { db.exec("ALTER TABLE students ADD COLUMN gender TEXT;"); } catch (e) {}
   try { db.exec("ALTER TABLE students ADD COLUMN shift TEXT;"); } catch (e) {}
+  try { db.exec("ALTER TABLE students ADD COLUMN photo TEXT;"); } catch (e) {}
+  try { db.exec("ALTER TABLE students ADD COLUMN archived INTEGER DEFAULT 0;"); } catch (e) {}
 
   return seedDefaultAdmin ? ensureDefaultAdmin() : false;
 }

@@ -3,26 +3,25 @@ import { showToast } from '../utils/toast.js';
 import { getInitials, escapeHtml, debounce } from '../utils/helpers.js';
 
 /**
- * Library seat map — a 90-seat floor plan (Basement / Floor 2) showing live
- * occupancy, with assign-to-student and release. Ported from the V16 seat system;
- * backed by the /api/seats endpoints (with a localStorage offline fallback).
+ * Library seat map — a configurable floor plan showing live occupancy, with
+ * assign-to-student and release. The floors, seats-per-floor and column count
+ * are driven by the `seat_config` setting (Settings → Library Layout); the API
+ * returns the layout so this view renders whatever the owner configured.
  */
 
-const FLOORS = [
-  { id: 'basement', label: 'Basement' },
-  { id: 'floor2', label: 'Floor 2' },
-];
 const SLOTS = ['Full Day', 'Early Morning', 'Morning', 'Afternoon', 'Evening'];
-const TOTAL = 90;
-const COLS = 10;
 
-let currentFloor = 'basement';
+let currentFloor = null;       // resolved from the API on first load
+let floors = [];               // [{ id, label, seats, cols }]
+let gridTotal = 0;             // seats on the current floor
+let gridCols = 10;             // columns on the current floor
 let bookingsBySeat = {};
 let pendingSeat = null;        // seat being assigned
 let pendingStudent = null;     // chosen student for assignment
 
 function floorLabel(id) {
-  return (FLOORS.find(f => f.id === id) || FLOORS[0]).label;
+  const f = floors.find(x => x.id === id);
+  return f ? f.label : (id || '—');
 }
 
 function todayStr() {
@@ -35,18 +34,31 @@ function plusMonthStr(dateStr, months) {
   return d.toISOString().split('T')[0];
 }
 
+function renderFloorTabs() {
+  const tabs = document.getElementById('seat-floor-tabs');
+  if (!tabs) return;
+  tabs.innerHTML = floors.map(f =>
+    `<button type="button" class="seat-floor-tab${f.id === currentFloor ? ' active' : ''}" data-floor="${escapeHtml(f.id)}">${escapeHtml(f.label)}</button>`
+  ).join('');
+}
+
 export async function renderSeatMap(floor) {
   if (floor) currentFloor = floor;
-  document.querySelectorAll('.seat-floor-tab').forEach(t =>
-    t.classList.toggle('active', t.dataset.floor === currentFloor));
 
   const grid = document.getElementById('seat-grid');
   if (grid) grid.innerHTML = '<div style="padding:40px;text-align:center"><div class="spinner" style="margin:0 auto"></div></div>';
 
   try {
-    const data = await api.get(`/seats?floor=${currentFloor}`);
+    const data = await api.get(`/seats?floor=${currentFloor || ''}`);
+    floors = data.floors || floors;
+    currentFloor = data.floor || currentFloor;
+    gridTotal = data.total || 0;
+    gridCols = data.cols || 10;
+
     bookingsBySeat = {};
     (data.bookings || []).forEach(b => { bookingsBySeat[b.seat_number] = b; });
+
+    renderFloorTabs();
     const av = document.getElementById('seat-avail-count');
     const oc = document.getElementById('seat-occ-count');
     if (av) av.textContent = `${data.available} available`;
@@ -60,19 +72,25 @@ export async function renderSeatMap(floor) {
 function drawGrid() {
   const grid = document.getElementById('seat-grid');
   if (!grid) return;
+  if (!gridTotal) { grid.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text3)">No seats configured for this floor.</div>'; return; }
+
+  const cols = Math.max(1, gridCols);
+  const aislePos = cols >= 4 ? Math.floor(cols / 2) - 1 : -1; // gap in the middle of the row
+  grid.style.minWidth = Math.min(cols * 44 + 40, 900) + 'px';
+
   const rows = [];
-  for (let i = 0; i < TOTAL; i += COLS) {
+  for (let i = 0; i < gridTotal; i += cols) {
     const cells = [];
-    for (let c = 0; c < COLS; c++) {
+    for (let c = 0; c < cols; c++) {
       const sn = i + c + 1;
-      if (sn > TOTAL) break;
+      if (sn > gridTotal) break;
       const b = bookingsBySeat[sn];
       const cls = b ? 'seat occ' : 'seat avail';
       const tip = b
         ? `${b.student_name}\nSeat ${sn} · ${b.slot || 'Full Day'}\n${b.from_date || '—'} → ${b.due_date || '—'}`
         : `Seat ${sn} · available`;
       cells.push(`<button type="button" class="${cls}" data-seat="${sn}" data-tip="${escapeHtml(tip)}">${sn}</button>`);
-      if (c === 4) cells.push('<div class="seat-aisle"></div>');
+      if (c === aislePos) cells.push('<div class="seat-aisle"></div>');
     }
     rows.push(`<div class="seat-row">${cells.join('')}</div>`);
   }
@@ -205,8 +223,11 @@ export function initSeatMap() {
   const page = document.getElementById('page-seats');
   if (!page) return;
 
-  page.querySelectorAll('.seat-floor-tab').forEach(tab =>
-    tab.addEventListener('click', () => renderSeatMap(tab.dataset.floor)));
+  // Floor tabs are rendered dynamically, so delegate clicks from the container.
+  document.getElementById('seat-floor-tabs')?.addEventListener('click', (e) => {
+    const tab = e.target.closest('.seat-floor-tab');
+    if (tab && tab.dataset.floor) renderSeatMap(tab.dataset.floor);
+  });
 
   document.getElementById('seat-grid')?.addEventListener('click', (e) => {
     const btn = e.target.closest('.seat');

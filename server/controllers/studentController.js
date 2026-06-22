@@ -9,54 +9,48 @@ function getAll(req, res) {
   const { page, limit, offset } = paginate(req.query);
   const { course, status, search, sort, order } = req.query;
 
-  let where = [];
-  let params = [];
+  // Compute fee status in SQL so the status filter and pagination counts are correct
+  // even past the first page (it mirrors helpers.getFeeStatus). `?` is bound to today.
+  const today = new Date().toISOString().split('T')[0];
+  const feeStatusSql = `CASE
+      WHEN (total_fees - paid_fees) <= 0 THEN 'Paid'
+      WHEN status = 'inactive' THEN 'Overdue'
+      WHEN due_date IS NOT NULL AND due_date < ? THEN 'Overdue'
+      ELSE 'Pending' END`;
 
-  if (course) {
-    where.push('course = ?');
-    params.push(course);
-  }
+  const inner = ['archived = 0'];
+  const innerParams = [];
+  if (course) { inner.push('course = ?'); innerParams.push(course); }
   if (search) {
-    where.push('(name LIKE ? OR phone LIKE ? OR id LIKE ? OR email LIKE ?)');
+    inner.push('(name LIKE ? OR phone LIKE ? OR id LIKE ? OR email LIKE ?)');
     const q = `%${search}%`;
-    params.push(q, q, q, q);
+    innerParams.push(q, q, q, q);
   }
+  const baseSubquery = `SELECT *, ${feeStatusSql} AS fee_status FROM students WHERE ${inner.join(' AND ')}`;
+  const outerWhere = status ? 'WHERE fee_status = ?' : '';
 
-  const whereClause = where.length ? 'WHERE ' + where.join(' AND ') : '';
-
-  // Get total count
-  const countRow = db.prepare(`SELECT COUNT(*) as total FROM students ${whereClause}`).get(...params);
-  const total = countRow.total;
-
-  // Validate sort column
   const validSorts = ['name', 'course', 'admission_date', 'total_fees', 'paid_fees', 'created_at'];
   const sortCol = validSorts.includes(sort) ? sort : 'created_at';
   const sortOrder = order === 'asc' ? 'ASC' : 'DESC';
 
-  const rows = db.prepare(
-    `SELECT * FROM students ${whereClause} ORDER BY ${sortCol} ${sortOrder} LIMIT ? OFFSET ?`
-  ).all(...params, limit, offset);
+  // The CASE (with its `today` param) is in the SELECT list, so `today` binds first.
+  const filterParams = [today, ...innerParams, ...(status ? [status] : [])];
 
-  // Enrich with fee status and filter by status if needed
-  let enriched = rows.map(s => ({
+  const total = db.prepare(`SELECT COUNT(*) AS total FROM (${baseSubquery}) ${outerWhere}`).get(...filterParams).total;
+
+  const rows = db.prepare(
+    `SELECT * FROM (${baseSubquery}) ${outerWhere}
+     ORDER BY (CASE WHEN status = 'inactive' THEN 1 ELSE 0 END), ${sortCol} ${sortOrder}
+     LIMIT ? OFFSET ?`
+  ).all(...filterParams, limit, offset);
+
+  const students = rows.map(s => ({
     ...s,
-    fee_status: getFeeStatus(s),
     remaining_fees: Math.max(0, s.total_fees - s.paid_fees),
   }));
 
-  if (status) {
-    enriched = enriched.filter(s => s.fee_status === status);
-  }
-
-  // Push Inactive to the end
-  enriched.sort((a, b) => {
-    if (a.fee_status === 'Inactive' && b.fee_status !== 'Inactive') return 1;
-    if (a.fee_status !== 'Inactive' && b.fee_status === 'Inactive') return -1;
-    return 0;
-  });
-
   res.json({
-    students: enriched,
+    students,
     pagination: {
       page,
       limit,
@@ -91,7 +85,7 @@ function getById(req, res) {
  * POST /api/students
  */
 function create(req, res) {
-  const { name, parent_name, phone, email, address, course, admission_date, due_date, total_fees, paid_fees, gender, shift } = req.body;
+  const { name, parent_name, phone, email, address, course, admission_date, due_date, total_fees, paid_fees, gender, shift, photo } = req.body;
 
   const validGenders = ['Male', 'Female', 'Other'];
   const validShifts = ['Day', 'Night', 'Both'];
@@ -102,8 +96,8 @@ function create(req, res) {
   const id = generateStudentId(lastIdRow ? lastIdRow.id : null);
 
   db.prepare(`
-    INSERT INTO students (id, name, parent_name, phone, email, address, course, admission_date, due_date, total_fees, paid_fees, gender, shift, created_by)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO students (id, name, parent_name, phone, email, address, course, admission_date, due_date, total_fees, paid_fees, gender, shift, photo, created_by)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).run(
     id,
     sanitize(name),
@@ -118,6 +112,7 @@ function create(req, res) {
     paid_fees || 0,
     gender || 'Male',
     shift || 'Day',
+    photo || null,
     req.user.id
   );
 
@@ -155,7 +150,7 @@ function update(req, res) {
     return res.status(404).json({ message: 'Student not found' });
   }
 
-  const { name, parent_name, phone, email, address, course, admission_date, due_date, total_fees, status, gender, shift } = req.body;
+  const { name, parent_name, phone, email, address, course, admission_date, due_date, total_fees, status, gender, shift, photo } = req.body;
 
   const validGenders = ['Male', 'Female', 'Other'];
   const validShifts = ['Day', 'Night', 'Both'];
@@ -176,6 +171,7 @@ function update(req, res) {
       status = COALESCE(?, status),
       gender = COALESCE(?, gender),
       shift = COALESCE(?, shift),
+      photo = COALESCE(?, photo),
       updated_at = datetime('now')
     WHERE id = ?
   `).run(
@@ -191,6 +187,7 @@ function update(req, res) {
     status || null,
     gender || null,
     shift || null,
+    photo !== undefined ? photo : null,
     req.params.id
   );
 
@@ -216,23 +213,25 @@ function remove(req, res) {
     return res.status(404).json({ message: 'Student not found' });
   }
 
-  db.prepare('DELETE FROM students WHERE id = ?').run(req.params.id);
+  // Soft-delete: archive the student so payment/receipt history is preserved
+  // (a hard DELETE would cascade and wipe their financial records).
+  db.prepare("UPDATE students SET archived = 1, status = 'inactive', updated_at = datetime('now') WHERE id = ?").run(req.params.id);
 
   // Audit log
   db.prepare(`
     INSERT INTO audit_logs (id, user_id, action, entity_type, entity_id, old_value, ip_address)
     VALUES (?, ?, ?, ?, ?, ?, ?)
-  `).run(generateId(), req.user.id, 'DELETE', 'student', req.params.id, JSON.stringify(existing), req.ip);
+  `).run(generateId(), req.user.id, 'ARCHIVE', 'student', req.params.id, JSON.stringify(existing), req.ip);
 
-  logger.info('Student deleted', { studentId: req.params.id, by: req.user.username });
-  res.json({ message: 'Student deleted successfully' });
+  logger.info('Student archived', { studentId: req.params.id, by: req.user.username });
+  res.json({ message: 'Student archived (records preserved)' });
 }
 
 /**
  * GET /api/students/courses
  */
 function getCourses(req, res) {
-  const courses = db.prepare('SELECT DISTINCT course FROM students ORDER BY course').all();
+  const courses = db.prepare('SELECT DISTINCT course FROM students WHERE archived = 0 ORDER BY course').all();
   res.json(courses.map(c => c.course));
 }
 

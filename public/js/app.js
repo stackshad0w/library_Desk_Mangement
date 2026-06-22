@@ -1,11 +1,11 @@
 import { requireAuth, setupAuthUI, logout } from './modules/auth.js';
 import { renderDashboard } from './modules/dashboard.js';
-import { renderStudentTable, submitAdmission, resetForm, calcRemaining, deleteStudent, editStudent, goToPage, setFilter, debouncedSearch, showStudentDetails, toggleStudentStatus, autoUpdateAdmissionFee } from './modules/students.js';
-import { renderFeeTable, openPaymentModal, closeModal, savePayment, calcNextDueDate, sendReceiptWhatsApp } from './modules/fees.js';
+import { renderStudentTable, submitAdmission, resetForm, calcRemaining, deleteStudent, editStudent, goToPage, setFilter, debouncedSearch, showStudentDetails, toggleStudentStatus, autoUpdateAdmissionFee, onPhotoSelected } from './modules/students.js';
+import { renderFeeTable, openPaymentModal, closeModal, savePayment, calcNextDueDate, setPayMonths, sendReceiptWhatsApp } from './modules/fees.js';
 import { customConfirm, closeConfirm } from './utils/helpers.js';
 import { renderReminders, sendReminderWhatsApp, openBulkReminder, startBulkSend, closeBulkModal } from './modules/reminders.js';
 import { exportCSV, exportExcel, exportPDF } from './modules/export.js';
-import { renderSettings, addFeeTier, removeFeeTier, initSettings, getFeeForMonths, setTheme, toggleTheme as toggleThemeSettings } from './modules/settings.js';
+import { renderSettings, addFeeTier, removeFeeTier, initSettings, getFeeForMonths, setTheme, toggleTheme as toggleThemeSettings, addFloor, removeFloor, updateFloorField, saveSeatConfig, downloadBackup, triggerRestore, restoreBackup, renderUsers, addUser, changeUserRole, setUserActive, deleteUser } from './modules/settings.js';
 import { initToast, showToast } from './utils/toast.js';
 import { initTheme, toggleTheme as toggleThemeUtil } from './utils/theme.js';
 import { initCommandPalette, openCommandPalette, closeCommandPalette } from './modules/command-palette.js';
@@ -25,7 +25,7 @@ initTooltips();
 
 // Page navigation
 const titles = {
-  reminders: 'Reminders', export: 'Export Data', statistics: 'Statistics',
+  dashboard: 'Dashboard', reminders: 'Reminders', export: 'Export Data',
   settings: 'Settings', seats: 'Library Seats'
 };
 
@@ -46,7 +46,7 @@ function showPage(id) {
   document.querySelector('.sidebar')?.classList.remove('open');
 
   // Load page data
-  if (id === 'statistics') renderDashboard();
+  if (id === 'dashboard') renderDashboard();
   if (id === 'admissions') renderStudentTable();
   if (id === 'fees') renderFeeTable();
   if (id === 'reminders') renderReminders();
@@ -79,7 +79,10 @@ window.SwamiAbhyasika = {
   closeModal,
   savePayment,
   calcNextDueDate,
+  setPayMonths,
   exportPDF,
+  exportCSV,
+  exportExcel,
   goToPage,
   setFilter,
   logout,
@@ -87,9 +90,22 @@ window.SwamiAbhyasika = {
   closeConfirm,
   addFeeTier,
   removeFeeTier,
+  addFloor,
+  removeFloor,
+  updateFloorField,
+  saveSeatConfig,
+  downloadBackup,
+  triggerRestore,
+  restoreBackup,
+  renderUsers,
+  addUser,
+  changeUserRole,
+  setUserActive,
+  deleteUser,
   setTheme,
   toggleTheme: toggleThemeUtil,
   autoUpdateAdmissionFee,
+  onPhotoSelected,
   getFeeForMonths,
   openCommandPalette,
   closeCommandPalette,

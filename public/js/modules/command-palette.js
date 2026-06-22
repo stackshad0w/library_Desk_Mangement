@@ -12,7 +12,7 @@ const ACTIONS = [
   { icon: '👥', label: 'Students',      sub: 'Browse all admitted students',        color: 'var(--accent2)', bg: 'var(--accent-bg)', page: 'admissions' },
   { icon: '💰', label: 'Fee Management', sub: 'Record payments & view dues',         color: 'var(--blue)',    bg: 'var(--blue-bg)',   page: 'fees' },
   { icon: '🔔', label: 'Reminders',     sub: 'Students with overdue or expiring fees', color: 'var(--red)',  bg: 'var(--red-bg)',    page: 'reminders' },
-  { icon: '📊', label: 'Statistics',    sub: 'Fees, revenue & reports',             color: 'var(--green)',   bg: 'var(--green-bg)',  page: 'statistics' },
+  { icon: '📊', label: 'Dashboard',     sub: 'Stats, charts & recent admissions',   color: 'var(--green)',   bg: 'var(--green-bg)',  page: 'dashboard' },
   { icon: '⬇️', label: 'Export Data',   sub: 'Download CSV, Excel or PDF',           color: 'var(--amber)',   bg: 'var(--amber-bg)',  page: 'export' },
   { icon: '⚙️', label: 'Settings',      sub: 'Fee tiers, theme & preferences',       color: 'var(--text2)',   bg: 'var(--bg4)',       page: 'settings' },
 ];

@@ -10,6 +10,31 @@ let currentOrder = 'desc';
 let currentCourse = '';
 let currentStatus = '';
 let currentSearch = '';
+let photoData = null;   // base64 data URL of a newly-selected student photo
+
+/** Read a chosen image file, downscale it to keep the stored size small, and preview it. */
+export function onPhotoSelected(e) {
+  const file = e.target.files && e.target.files[0];
+  if (!file) return;
+  if (!file.type.startsWith('image/')) { showToast('Please choose an image file', 'red'); return; }
+  const reader = new FileReader();
+  reader.onload = () => {
+    const img = new Image();
+    img.onload = () => {
+      const max = 400;
+      const scale = Math.min(1, max / Math.max(img.width, img.height));
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(img.width * scale);
+      canvas.height = Math.round(img.height * scale);
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      photoData = canvas.toDataURL('image/jpeg', 0.8);
+      const preview = document.getElementById('f-photo-preview');
+      if (preview) preview.src = photoData;
+    };
+    img.src = reader.result;
+  };
+  reader.readAsDataURL(file);
+}
 
 export async function renderStudentTable() {
   const tbody = document.getElementById('student-table');
@@ -88,11 +113,24 @@ function renderPagination(pagination) {
   const { page, totalPages, total } = pagination;
   if (totalPages <= 1) { container.innerHTML = ''; return; }
 
+  const pageBtn = (i) => `<button class="${i === page ? 'active' : ''}" onclick="window.SwamiAbhyasika.goToPage(${i})">${i}</button>`;
   let html = `<button ${page <= 1 ? 'disabled' : ''} onclick="window.SwamiAbhyasika.goToPage(${page - 1})">← Prev</button>`;
-  for (let i = 1; i <= Math.min(totalPages, 5); i++) {
-    html += `<button class="${i === page ? 'active' : ''}" onclick="window.SwamiAbhyasika.goToPage(${i})">${i}</button>`;
+
+  // A window of up to 5 pages that slides with the current page.
+  let start = Math.max(1, page - 2);
+  const end = Math.min(totalPages, start + 4);
+  start = Math.max(1, end - 4);
+
+  if (start > 1) {
+    html += pageBtn(1);
+    if (start > 2) html += `<span class="pagination-info">…</span>`;
   }
-  if (totalPages > 5) html += `<span class="pagination-info">... ${totalPages}</span>`;
+  for (let i = start; i <= end; i++) html += pageBtn(i);
+  if (end < totalPages) {
+    if (end < totalPages - 1) html += `<span class="pagination-info">…</span>`;
+    html += pageBtn(totalPages);
+  }
+
   html += `<button ${page >= totalPages ? 'disabled' : ''} onclick="window.SwamiAbhyasika.goToPage(${page + 1})">Next →</button>`;
   html += `<span class="pagination-info">${total} total</span>`;
   container.innerHTML = html;
@@ -111,12 +149,6 @@ export function setSearch(value) {
   renderStudentTable();
 }
 export const debouncedSearch = debounce(setSearch, 300);
-
-window.addEventListener('storage', (e) => {
-  if (e.key === 'edutrack_students' && document.getElementById('page-admissions')?.classList.contains('active')) {
-    renderStudentTable();
-  }
-});
 
 export async function submitAdmission() {
   const nameEl = document.getElementById('f-name');
@@ -152,6 +184,7 @@ export async function submitAdmission() {
       admission_date: document.getElementById('f-admission-date').value || new Date().toISOString().split('T')[0],
       due_date: document.getElementById('f-due-date').value || null,
     };
+    if (photoData) payload.photo = photoData;
 
     const editingId = window.SwamiAbhyasika._editingId;
     if (editingId) {
@@ -194,6 +227,13 @@ export function resetForm() {
   const payDateEl = document.getElementById('f-payment-date');
   if (payDateEl) payDateEl.value = today;
 
+  // Reset photo
+  photoData = null;
+  const photoInput = document.getElementById('f-photo');
+  if (photoInput) photoInput.value = '';
+  const photoPreview = document.getElementById('f-photo-preview');
+  if (photoPreview) photoPreview.src = '/img/icon.svg';
+
   setTimeout(() => window.SwamiAbhyasika.autoUpdateAdmissionFee(), 50);
 }
 
@@ -202,11 +242,11 @@ export function calcRemaining() {
 }
 
 export async function deleteStudent(id) {
-  const result = await window.SwamiAbhyasika.customConfirm('Delete this student? This action cannot be undone.', 'Delete Student', 'Delete', 'var(--red)');
+  const result = await window.SwamiAbhyasika.customConfirm('Remove this student? They will be taken off the active lists, but their payment history is kept.', 'Remove Student', 'Remove', 'var(--red)');
   if (!result) return;
   try {
     await api.delete(`/students/${id}`);
-    showToast('Student deleted', 'red');
+    showToast('Student removed (records kept)', 'amber');
     renderStudentTable();
   } catch (err) {
     showToast(err.message || 'Failed to delete', 'red');
@@ -229,6 +269,12 @@ export async function editStudent(id) {
     document.getElementById('f-gender').value = s.gender || 'Male';
     document.getElementById('f-shift').value = s.shift || 'Day';
     document.getElementById('new-id').textContent = s.id;
+    // Show the existing photo; leave photoData null so it's kept unless a new one is picked.
+    photoData = null;
+    const photoInput = document.getElementById('f-photo');
+    if (photoInput) photoInput.value = '';
+    const photoPreview = document.getElementById('f-photo-preview');
+    if (photoPreview) photoPreview.src = s.photo || '/img/icon.svg';
     window.SwamiAbhyasika._editingId = id;
     window.SwamiAbhyasika.showPage('admission-form');
   } catch (err) {

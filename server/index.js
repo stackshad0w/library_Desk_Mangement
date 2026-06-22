@@ -19,6 +19,7 @@ const dashboardRoutes = require('./routes/dashboard');
 const exportRoutes = require('./routes/export');
 const settingsRoutes = require('./routes/settings');
 const seatRoutes = require('./routes/seats');
+const backupRoutes = require('./routes/backup');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -68,6 +69,7 @@ app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/export', exportRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/seats', seatRoutes);
+app.use('/api/backup', backupRoutes);
 
 // Serve login page as default
 app.get('/', (req, res) => {

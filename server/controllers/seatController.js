@@ -2,11 +2,30 @@ const { db } = require('../config/database');
 const { generateId } = require('../utils/helpers');
 const logger = require('../utils/logger');
 
-const VALID_FLOORS = ['basement', 'floor2'];
-const SEATS_PER_FLOOR = 90;
+// Default layout (used until the owner customises it in Settings → Library Layout).
+const DEFAULT_SEAT_CONFIG = {
+  floors: [
+    { id: 'basement', label: 'Basement', seats: 90, cols: 10 },
+    { id: 'floor2', label: 'Floor 2', seats: 90, cols: 10 },
+  ],
+};
 
-function normalizeFloor(value) {
-  return VALID_FLOORS.includes(value) ? value : 'basement';
+/** Read the configurable seat layout from settings, falling back to the default. */
+function getSeatConfig() {
+  const row = db.prepare('SELECT value FROM settings WHERE key = ?').get('seat_config');
+  if (row) {
+    try {
+      const cfg = JSON.parse(row.value);
+      if (cfg && Array.isArray(cfg.floors) && cfg.floors.length) return cfg;
+    } catch { /* fall through to default */ }
+  }
+  return DEFAULT_SEAT_CONFIG;
+}
+
+/** Resolve a requested floor id to a configured floor (defaults to the first). */
+function getFloorConfig(value) {
+  const cfg = getSeatConfig();
+  return cfg.floors.find(f => f.id === value) || cfg.floors[0];
 }
 
 function today() {
@@ -18,7 +37,10 @@ function today() {
  * Returns the active bookings for a floor (enriched with student info) plus occupancy counts.
  */
 function getAll(req, res) {
-  const floor = normalizeFloor(req.query.floor);
+  const cfg = getSeatConfig();
+  const floorCfg = getFloorConfig(req.query.floor);
+  const floor = floorCfg.id;
+  const seatsOnFloor = floorCfg.seats;
   const date = req.query.date || today();
 
   // Auto-expire bookings whose subscription period has ended.
@@ -40,10 +62,12 @@ function getAll(req, res) {
   res.json({
     floor,
     date,
-    total: SEATS_PER_FLOOR,
+    total: seatsOnFloor,
+    cols: floorCfg.cols || 10,
     occupied: bookings.length,
-    available: SEATS_PER_FLOOR - bookings.length,
+    available: seatsOnFloor - bookings.length,
     bookings,
+    floors: cfg.floors.map(f => ({ id: f.id, label: f.label, seats: f.seats, cols: f.cols || 10 })),
   });
 }
 
@@ -51,12 +75,17 @@ function getAll(req, res) {
  * POST /api/seats — assign a seat to a student.
  */
 function create(req, res) {
-  const floor = normalizeFloor(req.body.floor);
+  const cfg = getSeatConfig();
+  const floorCfg = cfg.floors.find(f => f.id === req.body.floor);
+  if (!floorCfg) {
+    return res.status(400).json({ message: 'Unknown floor' });
+  }
+  const floor = floorCfg.id;
   const seat_number = parseInt(req.body.seat_number, 10);
   const { student_id, slot, from_date, due_date } = req.body;
 
-  if (!seat_number || seat_number < 1 || seat_number > SEATS_PER_FLOOR) {
-    return res.status(400).json({ message: 'Invalid seat number' });
+  if (!seat_number || seat_number < 1 || seat_number > floorCfg.seats) {
+    return res.status(400).json({ message: `Invalid seat number (1–${floorCfg.seats} on ${floorCfg.label})` });
   }
 
   const student = db.prepare('SELECT id, name FROM students WHERE id = ?').get(student_id);
