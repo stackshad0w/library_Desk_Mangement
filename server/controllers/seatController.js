@@ -54,10 +54,11 @@ function getAll(req, res) {
     FROM seat_bookings sb
     LEFT JOIN students s ON s.id = sb.student_id
     WHERE sb.floor = ? AND sb.status = 'active'
+      AND sb.seat_number <= ?
       AND (sb.from_date IS NULL OR sb.from_date <= ?)
       AND (sb.due_date IS NULL OR sb.due_date >= ?)
     ORDER BY sb.seat_number
-  `).all(floor, date, date);
+  `).all(floor, seatsOnFloor, date, date);
 
   res.json({
     floor,

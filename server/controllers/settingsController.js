@@ -101,6 +101,19 @@ exports.updateSetting = (req, res) => {
   try {
     const stringValue = typeof value === 'string' ? value : JSON.stringify(value);
     db.prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run(key, stringValue);
+
+    // If the layout shrank, cancel active bookings that no longer fit (removed
+    // floor, or seat number now beyond that floor's capacity) so they don't
+    // linger as invisible "ghost" occupancy.
+    if (key === 'seat_config') {
+      const active = db.prepare("SELECT id, floor, seat_number FROM seat_bookings WHERE status = 'active'").all();
+      const cancel = db.prepare("UPDATE seat_bookings SET status = 'cancelled' WHERE id = ?");
+      for (const b of active) {
+        const fc = value.floors.find(f => f.id === b.floor);
+        if (!fc || b.seat_number > fc.seats) cancel.run(b.id);
+      }
+    }
+
     res.json({ message: 'Setting updated successfully' });
   } catch (err) {
     res.status(500).json({ message: 'Failed to update setting' });

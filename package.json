@@ -1,5 +1,5 @@
 {
-  "name": "edutrack",
+  "name": "swami-abhyasika",
   "version": "1.0.0",
   "description": "Swami Abhyasika - Student Management System",
   "main": "server/index.js",
@@ -10,7 +10,8 @@
     "dev": "node --watch server/index.js",
     "start": "node server/index.js",
     "migrate": "node server/config/migrate.js",
-    "seed": "node server/config/seed.js"
+    "seed": "node server/config/seed.js",
+    "test": "node --test"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

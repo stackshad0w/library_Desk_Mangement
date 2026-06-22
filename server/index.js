@@ -24,6 +24,10 @@ const backupRoutes = require('./routes/backup');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Behind a single reverse proxy (e.g. Vercel/Nginx) so req.ip and rate-limiting
+// key off the real client, not the proxy. Harmless for direct localhost use.
+app.set('trust proxy', 1);
+
 // Initialize database
 initialize();
 logger.info('Database initialized');

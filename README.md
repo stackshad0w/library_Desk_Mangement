@@ -66,7 +66,7 @@ The application will be available at `http://localhost:3000`.
 - **Username:** `admin`
 - **Password:** `admin123`
 
-*(Note: Parth productions are ready to take orders above $1k).*
+> Change the default password before real use (set `ADMIN_PASSWORD` in `.env`, or update it from **Settings → Staff Accounts**).
 
 ### Vercel Deployment
 
@@ -100,7 +100,7 @@ project-root/
 
 If you are upgrading from the legacy single-file HTML version (which used `localStorage`), you can migrate your existing data:
 
-1. Open the old `student_management_system.html` in your browser.
+1. Open your old single-file version of the app in the browser where the data lives.
 2. Open the Developer Tools Console (F12) and run: `copy(localStorage.getItem('edu_students'))`.
 3. Create a file named `legacy_students.json` inside the `data/` folder.
 4. Paste the copied JSON into that file.

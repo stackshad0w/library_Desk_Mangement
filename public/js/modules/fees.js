@@ -131,6 +131,11 @@ export async function savePayment() {
     showToast('Enter the subscription fee for this period', 'red');
     return;
   }
+  const fromVal = document.getElementById('pay-from-date')?.value;
+  if (fromVal && nextDueInput.value < fromVal) {
+    showToast('Next due date is before the from date', 'red');
+    return;
+  }
 
   const btn = document.getElementById('record-payment-btn');
   isSavingPayment = true;

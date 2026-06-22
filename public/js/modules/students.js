@@ -195,6 +195,12 @@ export async function submitAdmission() {
   if (err = validateRequired(courseEl.value, 'Course')) { showFieldError(courseEl, err); errors.push(err); }
   if (err = validatePositiveNumber(totalEl.value, 'Total Fees')) { showFieldError(totalEl, err); errors.push(err); }
   if (!totalEl.value || parseFloat(totalEl.value) <= 0) { showFieldError(totalEl, 'Total fees required'); errors.push('fees'); }
+  const admVal = document.getElementById('f-admission-date')?.value;
+  const dueVal = document.getElementById('f-due-date')?.value;
+  if (admVal && dueVal && dueVal < admVal) {
+    showFieldError(document.getElementById('f-due-date'), 'Due date cannot be before the admission date');
+    errors.push('date');
+  }
   if (errors.length) return;
 
   // Amount paid now defaults to the full fee but can be a partial down-payment.
