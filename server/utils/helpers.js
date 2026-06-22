@@ -39,9 +39,11 @@ function generateId() {
  * Calculate fee status for a student
  */
 function getFeeStatus(student) {
+  // A deactivated student is paused — not "overdue".
+  if (student.status === 'inactive') return 'Inactive';
+
   const remaining = Math.round(((student.total_fees || 0) - (student.paid_fees || 0)) * 100) / 100;
   if (remaining <= 0) return 'Paid';
-  if (student.status === 'inactive') return 'Overdue';
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -51,7 +53,6 @@ function getFeeStatus(student) {
     const due = new Date(student.due_date);
     due.setHours(0, 0, 0, 0);
     if (due < today) {
-      const diffDays = (today.getTime() - due.getTime()) / (1000 * 60 * 60 * 24);
       return 'Overdue';
     }
   }

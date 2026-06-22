@@ -11,6 +11,7 @@ let payingStudentOriginalShift = 'Day';
 let payingStudentPhone = '';
 let payingStudentName = '';
 let lastReceipt = null;
+let isSavingPayment = false; // guards against double-recording a payment
 
 export async function renderFeeTable() {
   const filter = document.getElementById('fee-filter')?.value || '';
@@ -89,6 +90,7 @@ export function closeModal(id) {
 }
 
 export async function savePayment() {
+  if (isSavingPayment) return;
   const amount = parseFloat(document.getElementById('pay-amount').value);
   const periodFee = parseFloat(document.getElementById('pay-period-fee')?.value);
   const nextDueInput = document.getElementById('pay-next-due-date');
@@ -103,6 +105,10 @@ export async function savePayment() {
     showToast('Enter the subscription fee for this period', 'red');
     return;
   }
+
+  const btn = document.getElementById('record-payment-btn');
+  isSavingPayment = true;
+  if (btn) { btn.disabled = true; btn.textContent = 'Recording…'; }
 
   try {
     // 1. Update student shift only if changed
@@ -143,6 +149,9 @@ export async function savePayment() {
     renderFeeTable();
   } catch (err) {
     showToast(err.message || 'Failed to record payment', 'red');
+  } finally {
+    isSavingPayment = false;
+    if (btn) { btn.disabled = false; btn.textContent = 'Record Payment'; }
   }
 }
 

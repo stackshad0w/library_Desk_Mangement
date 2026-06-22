@@ -131,10 +131,10 @@ function deletePayment(req, res) {
   // and credited the amount paid, so undo each side with the figure it used.
   if (payment.till_date) {
     const billed = payment.charge != null ? payment.charge : payment.amount;
-    db.prepare('UPDATE students SET total_fees = total_fees - ?, paid_fees = paid_fees - ?, updated_at = datetime(\'now\') WHERE id = ?')
+    db.prepare("UPDATE students SET total_fees = MAX(0, total_fees - ?), paid_fees = MAX(0, paid_fees - ?), updated_at = datetime('now') WHERE id = ?")
       .run(billed, payment.amount, payment.student_id);
   } else {
-    db.prepare('UPDATE students SET paid_fees = paid_fees - ?, updated_at = datetime(\'now\') WHERE id = ?')
+    db.prepare("UPDATE students SET paid_fees = MAX(0, paid_fees - ?), updated_at = datetime('now') WHERE id = ?")
       .run(payment.amount, payment.student_id);
   }
 

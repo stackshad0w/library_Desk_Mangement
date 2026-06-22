@@ -22,6 +22,7 @@ function getStats(req, res) {
 
   students.forEach(s => {
     const status = getFeeStatus(s);
+    if (status === 'Inactive') return; // paused students don't count toward active money figures
     const total = Number(s.total_fees) || 0;
     const paid = Number(s.paid_fees) || 0;
     const balance = Math.max(0, total - paid);
@@ -87,7 +88,7 @@ function getReminders(req, res) {
 
   const reminders = students.filter(s => {
     const status = getFeeStatus(s);
-    if (status === 'Paid') return false;
+    if (status === 'Paid' || status === 'Inactive') return false;
     if (!s.due_date) return status === 'Overdue';
     return new Date(s.due_date) <= soon;
   }).map(s => {

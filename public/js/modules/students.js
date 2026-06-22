@@ -11,6 +11,7 @@ let currentCourse = '';
 let currentStatus = '';
 let currentSearch = '';
 let photoData = null;   // base64 data URL of a newly-selected student photo
+let isSubmitting = false; // guards against double-submitting the admission form
 
 /** Read a chosen image file, downscale it to keep the stored size small, and preview it. */
 export function onPhotoSelected(e) {
@@ -151,6 +152,7 @@ export function setSearch(value) {
 export const debouncedSearch = debounce(setSearch, 300);
 
 export async function submitAdmission() {
+  if (isSubmitting) return;
   const nameEl = document.getElementById('f-name');
   const phoneEl = document.getElementById('f-phone');
   const emailEl = document.getElementById('f-email');
@@ -169,6 +171,18 @@ export async function submitAdmission() {
   if (!totalEl.value || parseFloat(totalEl.value) <= 0) { showFieldError(totalEl, 'Total fees required'); errors.push('fees'); }
   if (errors.length) return;
 
+  // Amount paid now defaults to the full fee but can be a partial down-payment.
+  const total = parseFloat(totalEl.value) || 0;
+  const paidEl = document.getElementById('f-paid-now');
+  let paidNow = (paidEl && paidEl.value !== '') ? parseFloat(paidEl.value) : total;
+  if (isNaN(paidNow) || paidNow < 0) paidNow = 0;
+  if (paidNow > total) paidNow = total;
+
+  const editingId = window.SwamiAbhyasika._editingId;
+  const btn = document.getElementById('save-student-btn');
+  isSubmitting = true;
+  if (btn) { btn.disabled = true; btn.textContent = editingId ? 'Updating…' : 'Saving…'; }
+
   try {
     const payload = {
       name: nameEl.value.trim(),
@@ -177,8 +191,8 @@ export async function submitAdmission() {
       email: emailEl.value.trim(),
       address: document.getElementById('f-address').value.trim(),
       course: courseEl.value,
-      total_fees: parseFloat(totalEl.value),
-      paid_fees: parseFloat(totalEl.value) || 0, // Fully paid subscription upfront
+      total_fees: total,
+      paid_fees: paidNow,
       gender: document.getElementById('f-gender').value,
       shift: document.getElementById('f-shift').value,
       admission_date: document.getElementById('f-admission-date').value || new Date().toISOString().split('T')[0],
@@ -186,7 +200,6 @@ export async function submitAdmission() {
     };
     if (photoData) payload.photo = photoData;
 
-    const editingId = window.SwamiAbhyasika._editingId;
     if (editingId) {
       await api.put(`/students/${editingId}`, payload);
       showToast('Student updated successfully!', 'green');
@@ -203,6 +216,9 @@ export async function submitAdmission() {
     } else {
       showToast(err.message || 'Failed to save student', 'red');
     }
+  } finally {
+    isSubmitting = false;
+    if (btn) { btn.disabled = false; btn.textContent = 'Save Student'; }
   }
 }
 
@@ -233,6 +249,10 @@ export function resetForm() {
   if (photoInput) photoInput.value = '';
   const photoPreview = document.getElementById('f-photo-preview');
   if (photoPreview) photoPreview.src = '/img/icon.svg';
+
+  // "Amount Paid Now" only applies to new admissions; show it again here.
+  const paidGroup = document.getElementById('paid-now-group');
+  if (paidGroup) paidGroup.style.display = '';
 
   setTimeout(() => window.SwamiAbhyasika.autoUpdateAdmissionFee(), 50);
 }
@@ -275,6 +295,9 @@ export async function editStudent(id) {
     if (photoInput) photoInput.value = '';
     const photoPreview = document.getElementById('f-photo-preview');
     if (photoPreview) photoPreview.src = s.photo || '/img/icon.svg';
+    // Paid-now is an admission-only control; editing fees doesn't record a payment.
+    const paidGroup = document.getElementById('paid-now-group');
+    if (paidGroup) paidGroup.style.display = 'none';
     window.SwamiAbhyasika._editingId = id;
     window.SwamiAbhyasika.showPage('admission-form');
   } catch (err) {
@@ -386,6 +409,9 @@ export function autoUpdateAdmissionFee() {
         totalEl.value = fee;
         calcRemaining();
       }
+      // Default the amount-paid field to the full fee (operator can lower it).
+      const paidEl = document.getElementById('f-paid-now');
+      if (paidEl) paidEl.value = fee;
       // Auto-calculate due date from admission date + months
       const admDateEl = document.getElementById('f-admission-date');
       const dueDateEl = document.getElementById('f-due-date');

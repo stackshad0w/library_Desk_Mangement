@@ -13,8 +13,8 @@ function getAll(req, res) {
   // even past the first page (it mirrors helpers.getFeeStatus). `?` is bound to today.
   const today = new Date().toISOString().split('T')[0];
   const feeStatusSql = `CASE
+      WHEN status = 'inactive' THEN 'Inactive'
       WHEN (total_fees - paid_fees) <= 0 THEN 'Paid'
-      WHEN status = 'inactive' THEN 'Overdue'
       WHEN due_date IS NOT NULL AND due_date < ? THEN 'Overdue'
       ELSE 'Pending' END`;
 
