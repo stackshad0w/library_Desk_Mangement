@@ -405,10 +405,12 @@ function renderCourses() {
   const wrap = document.getElementById('courses-list');
   if (!wrap) return;
   wrap.innerHTML = courseList.map((c, i) => `
-    <span class="status-pill badge-purple" style="display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:4px 10px;">
-      ${escapeAttr(c)}
-      <button class="icon-btn" style="width:18px;height:18px;background:none;color:var(--red)" title="Remove" onclick="window.SwamiAbhyasika.removeCourse(${i})">✕</button>
-    </span>`).join('');
+    <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 14px; background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius-sm);">
+      <span style="font-weight:500; font-size:14px;">${escapeAttr(c)}</span>
+      <button class="icon-btn" title="Remove course" style="color:var(--red)" onclick="window.SwamiAbhyasika.removeCourse(${i})">
+        <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+      </button>
+    </div>`).join('');
 }
 
 // Fill the admission form's course dropdown from the configured list.

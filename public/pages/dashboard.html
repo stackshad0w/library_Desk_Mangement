@@ -180,7 +180,7 @@
             <div style="display:flex; flex-wrap:wrap; gap:12px; align-items:flex-end; padding:16px; background:var(--bg3); border-radius:var(--radius-sm);">
               <div class="form-group" style="flex:1; min-width:100px;"><label>Gender</label><select id="new-tier-gender"><option value="Male">Male</option><option value="Female">Female</option></select></div>
               <div class="form-group" style="flex:1; min-width:100px;"><label>Shift</label><select id="new-tier-shift"><option value="Day">Day</option><option value="Night">Night</option><option value="Both">Both</option></select></div>
-              <div class="form-group" style="flex:1; min-width:100px;"><label>Months</label><input type="number" id="new-tier-months" placeholder="e.g. 3"></div>
+              <div class="form-group" style="flex:1; min-width:100px;"><label>Months</label><select id="new-tier-months"><option value="">Select</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option></select></div>
               <div class="form-group" style="flex:1; min-width:120px;"><label>Total Fee (₹)</label><input type="number" id="new-tier-fee" placeholder="e.g. 2700"></div>
               <button class="btn btn-primary" onclick="window.SwamiAbhyasika.addFeeTier()" style="height:42px;">Add Rule</button>
             </div>
@@ -194,7 +194,7 @@
               Courses
             </div>
             <p style="font-size:13px; color:var(--text3); margin-bottom:16px;">The course options shown on the admission form.</p>
-            <div id="courses-list" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px;"></div>
+            <div id="courses-list" style="display:flex; flex-direction:column; gap:8px; margin-bottom:16px;"></div>
             <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end;">
               <div class="form-group" style="flex:1; min-width:160px;"><label>Add a course</label><input type="text" id="new-course" placeholder="e.g. NEET"></div>
               <button class="btn btn-primary" onclick="window.SwamiAbhyasika.addCourse()" style="height:42px;">Add Course</button>
@@ -372,9 +372,15 @@
       <div class="page" id="page-seats">
         <div class="seat-toolbar">
           <div class="seat-floor-tabs" id="seat-floor-tabs"><!-- floor tabs rendered from seat_config --></div>
-          <div class="seat-legend">
-            <span><i class="seat-dot avail"></i><span id="seat-avail-count">— available</span></span>
-            <span><i class="seat-dot occ"></i><span id="seat-occ-count">— occupied</span></span>
+          <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
+            <div class="seat-legend">
+              <span><i class="seat-dot avail"></i><span id="seat-avail-count">— available</span></span>
+              <span><i class="seat-dot occ"></i><span id="seat-occ-count">— occupied</span></span>
+            </div>
+            <button class="btn btn-ghost" onclick="window.SwamiAbhyasika.editSeatLayout()" title="Change floors, seats and columns">
+              <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+              Customize Layout
+            </button>
           </div>
         </div>
         <div class="table-card" style="overflow-x:auto">

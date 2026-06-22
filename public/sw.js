@@ -1,6 +1,6 @@
 /* Swami Abhyasika service worker — offline app shell caching.
  * Cache-first for same-origin static assets; API calls are never cached. */
-const CACHE = 'swami-v3';
+const CACHE = 'swami-v4';
 const ASSETS = [
   '/',
   '/pages/login.html',

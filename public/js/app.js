@@ -55,6 +55,14 @@ function showPage(id) {
   if (id === 'admission-form') populateCourseSelect();
 }
 
+// Jump from the Library Seats page to the layout editor in Settings.
+function editSeatLayout() {
+  showPage('settings');
+  setTimeout(() => {
+    document.getElementById('seat-config-list')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, 300);
+}
+
 // Mobile sidebar toggle
 document.getElementById('menu-toggle')?.addEventListener('click', () => {
   document.querySelector('.sidebar')?.classList.toggle('open');
@@ -75,6 +83,7 @@ if (searchInput) {
 // Expose functions globally for onclick handlers in dynamic HTML
 window.SwamiAbhyasika = {
   showPage,
+  editSeatLayout,
   submitAdmission,
   resetForm,
   calcRemaining,
