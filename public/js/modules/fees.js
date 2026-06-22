@@ -1,10 +1,11 @@
 import { api } from './api.js';
 import { showToast } from '../utils/toast.js';
 import { formatCurrency, getInitials, getColor, statusBadgeClass, getSubscriptionBalance, escapeHtml } from '../utils/helpers.js';
-import { PAYMENT_METHODS } from '../utils/constants.js';
+import { PAYMENT_METHODS, ITEMS_PER_PAGE } from '../utils/constants.js';
 import { getFeeForMonths } from './settings.js';
 import { sendReceiptWA } from './whatsapp.js';
 
+let currentFeePage = 1;
 let payingStudentId = null;
 let payingStudentGender = 'Male';
 let payingStudentOriginalShift = 'Day';
@@ -13,18 +14,41 @@ let payingStudentName = '';
 let lastReceipt = null;
 let isSavingPayment = false; // guards against double-recording a payment
 
+export function goToFeePage(page) { currentFeePage = page; renderFeeTable(); }
+export function filterFeeTable() { currentFeePage = 1; renderFeeTable(); }
+
+function renderFeePagination(pagination) {
+  const container = document.getElementById('fee-pagination');
+  if (!container || !pagination) return;
+  const { page, totalPages, total } = pagination;
+  if (totalPages <= 1) { container.innerHTML = ''; return; }
+
+  const pageBtn = (i) => `<button class="${i === page ? 'active' : ''}" onclick="window.SwamiAbhyasika.goToFeePage(${i})">${i}</button>`;
+  let html = `<button ${page <= 1 ? 'disabled' : ''} onclick="window.SwamiAbhyasika.goToFeePage(${page - 1})">← Prev</button>`;
+  let start = Math.max(1, page - 2);
+  const end = Math.min(totalPages, start + 4);
+  start = Math.max(1, end - 4);
+  if (start > 1) { html += pageBtn(1); if (start > 2) html += `<span class="pagination-info">…</span>`; }
+  for (let i = start; i <= end; i++) html += pageBtn(i);
+  if (end < totalPages) { if (end < totalPages - 1) html += `<span class="pagination-info">…</span>`; html += pageBtn(totalPages); }
+  html += `<button ${page >= totalPages ? 'disabled' : ''} onclick="window.SwamiAbhyasika.goToFeePage(${page + 1})">Next →</button>`;
+  html += `<span class="pagination-info">${total} total</span>`;
+  container.innerHTML = html;
+}
+
 export async function renderFeeTable() {
   const filter = document.getElementById('fee-filter')?.value || '';
   const tbody = document.getElementById('fee-table');
   tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px"><div class="spinner" style="margin:0 auto"></div></td></tr>';
 
   try {
-    const params = new URLSearchParams({ limit: 100 });
+    const params = new URLSearchParams({ page: currentFeePage, limit: ITEMS_PER_PAGE });
     if (filter) params.set('status', filter);
     const data = await api.get(`/students?${params}`);
 
     if (!data.students.length) {
       tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--text3)">No records found.</td></tr>';
+      renderFeePagination(data.pagination);
       return;
     }
 
@@ -47,6 +71,8 @@ export async function renderFeeTable() {
         <td><button class="btn btn-ghost" style="font-size:11px;padding:5px 10px" onclick="window.SwamiAbhyasika.openPaymentModal('${s.id}')">Pay</button></td>
       </tr>`;
     }).join('');
+
+    renderFeePagination(data.pagination);
   } catch (err) {
     tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--red)">Failed to load fee data</td></tr>';
   }

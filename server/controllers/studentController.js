@@ -18,7 +18,8 @@ function getAll(req, res) {
       WHEN due_date IS NOT NULL AND due_date < ? THEN 'Overdue'
       ELSE 'Pending' END`;
 
-  const inner = ['archived = 0'];
+  const archived = req.query.archived === '1' ? 1 : 0; // view active (0) or archived (1) students
+  const inner = [`archived = ${archived}`];
   const innerParams = [];
   if (course) { inner.push('course = ?'); innerParams.push(course); }
   if (search) {
@@ -228,6 +229,26 @@ function remove(req, res) {
 }
 
 /**
+ * POST /api/students/:id/restore — un-archive a previously removed student.
+ */
+function restore(req, res) {
+  const existing = db.prepare('SELECT id FROM students WHERE id = ?').get(req.params.id);
+  if (!existing) {
+    return res.status(404).json({ message: 'Student not found' });
+  }
+
+  db.prepare("UPDATE students SET archived = 0, status = 'active', updated_at = datetime('now') WHERE id = ?").run(req.params.id);
+
+  db.prepare(`
+    INSERT INTO audit_logs (id, user_id, action, entity_type, entity_id, ip_address)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `).run(generateId(), req.user.id, 'RESTORE', 'student', req.params.id, req.ip);
+
+  logger.info('Student restored', { studentId: req.params.id, by: req.user.username });
+  res.json({ message: 'Student restored' });
+}
+
+/**
  * GET /api/students/courses
  */
 function getCourses(req, res) {
@@ -235,4 +256,4 @@ function getCourses(req, res) {
   res.json(courses.map(c => c.course));
 }
 
-module.exports = { getAll, getById, create, update, remove, getCourses };
+module.exports = { getAll, getById, create, update, remove, restore, getCourses };

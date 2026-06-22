@@ -14,6 +14,8 @@ export const DEFAULT_THEMES = [
 const SELECTED_THEME_KEY = 'selectedTheme';
 const LOCAL_SETTINGS_KEY = 'edutrack_settings';
 const DEFAULT_FEE_TIERS = [{ gender: 'Male', shift: 'Day', months: 1, fee: 1000 }];
+const DEFAULT_COURSES = ['UPSC MPSC', 'IIT JEE/MHT CET', 'MEDICAL', 'OTHER'];
+let courseList = DEFAULT_COURSES.slice();
 
 function loadFeeTiersFromStorage() {
   try {
@@ -113,6 +115,9 @@ export async function renderSettings() {
     if (Array.isArray(settings.fee_tiers) && settings.fee_tiers.length) {
       feeTiers = settings.fee_tiers;
     }
+    if (Array.isArray(settings.courses) && settings.courses.length) {
+      courseList = settings.courses;
+    }
 
     const savedTheme = localStorage.getItem(SELECTED_THEME_KEY) || settings.theme || 'default';
     localStorage.setItem(SELECTED_THEME_KEY, savedTheme);
@@ -123,6 +128,8 @@ export async function renderSettings() {
   }
 
   loadSeatConfig();
+  renderCourses();
+  populateCourseSelect();
 
   // Admin-only sections (staff accounts, backup/restore).
   const isAdmin = (api.getUser()?.role === 'admin');
@@ -387,6 +394,61 @@ export async function deleteUser(id) {
   catch (err) { showToast(err.data?.message || err.message || 'Failed', 'red'); }
 }
 
+/* ---------- Courses (configurable) ---------- */
+export function setCourseList(list) {
+  if (Array.isArray(list) && list.length) courseList = list.slice();
+  renderCourses();
+  populateCourseSelect();
+}
+
+function renderCourses() {
+  const wrap = document.getElementById('courses-list');
+  if (!wrap) return;
+  wrap.innerHTML = courseList.map((c, i) => `
+    <span class="status-pill badge-purple" style="display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:4px 10px;">
+      ${escapeAttr(c)}
+      <button class="icon-btn" style="width:18px;height:18px;background:none;color:var(--red)" title="Remove" onclick="window.SwamiAbhyasika.removeCourse(${i})">✕</button>
+    </span>`).join('');
+}
+
+// Fill the admission form's course dropdown from the configured list.
+export function populateCourseSelect() {
+  const sel = document.getElementById('f-course');
+  if (!sel) return;
+  const cur = sel.value;
+  const list = courseList.slice();
+  if (cur && !list.includes(cur)) list.unshift(cur); // keep an existing student's course even if delisted
+  sel.innerHTML = '<option value="">Select Course</option>' +
+    list.map(c => `<option ${c === cur ? 'selected' : ''}>${escapeAttr(c)}</option>`).join('');
+}
+
+export async function addCourse() {
+  const input = document.getElementById('new-course');
+  const name = (input?.value || '').trim();
+  if (!name) { showToast('Enter a course name', 'red'); return; }
+  if (courseList.some(c => c.toLowerCase() === name.toLowerCase())) { showToast('Course already exists', 'amber'); return; }
+  courseList.push(name);
+  if (input) input.value = '';
+  await saveCourses();
+}
+
+export async function removeCourse(idx) {
+  if (courseList.length <= 1) { showToast('At least one course is required', 'amber'); return; }
+  courseList.splice(idx, 1);
+  await saveCourses();
+}
+
+async function saveCourses() {
+  try {
+    await api.put('/settings', { key: 'courses', value: courseList });
+    showToast('Courses updated', 'green');
+  } catch (err) {
+    showToast(err.data?.message || err.message || 'Failed to save courses', 'red');
+  }
+  renderCourses();
+  populateCourseSelect();
+}
+
 export async function initSettings() {
   renderThemeOptions(DEFAULT_THEMES);
   const savedTheme = localStorage.getItem(SELECTED_THEME_KEY) || 'default';
@@ -399,6 +461,10 @@ export async function initSettings() {
     if (Array.isArray(settings.fee_tiers) && settings.fee_tiers.length) {
       feeTiers = settings.fee_tiers;
     }
+    if (Array.isArray(settings.courses) && settings.courses.length) {
+      courseList = settings.courses;
+    }
+    populateCourseSelect();
 
     const theme = localStorage.getItem(SELECTED_THEME_KEY) || settings.theme || 'default';
     localStorage.setItem(SELECTED_THEME_KEY, theme);

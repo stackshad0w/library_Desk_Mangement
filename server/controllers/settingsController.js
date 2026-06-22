@@ -17,7 +17,7 @@ exports.getSettings = (req, res) => {
   }
 };
 
-const ALLOWED_SETTINGS_KEYS = ['fee_tiers', 'theme', 'seat_config'];
+const ALLOWED_SETTINGS_KEYS = ['fee_tiers', 'theme', 'seat_config', 'courses'];
 
 exports.updateSetting = (req, res) => {
   const { key, value } = req.body;
@@ -56,6 +56,18 @@ exports.updateSetting = (req, res) => {
       }
       if (tier.shift && !validShifts.includes(tier.shift)) {
         return res.status(400).json({ message: `Invalid shift in tier: ${tier.shift}` });
+      }
+    }
+  }
+
+  // Validate courses list
+  if (key === 'courses') {
+    if (!Array.isArray(value) || value.length === 0) {
+      return res.status(400).json({ message: 'courses must be a non-empty array' });
+    }
+    for (const c of value) {
+      if (typeof c !== 'string' || !c.trim()) {
+        return res.status(400).json({ message: 'Each course must be a non-empty name' });
       }
     }
   }

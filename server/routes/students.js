@@ -55,4 +55,11 @@ router.delete('/:id',
   studentController.remove
 );
 
+router.post('/:id/restore',
+  authorize('admin'),
+  param('id').notEmpty(),
+  validate,
+  studentController.restore
+);
+
 module.exports = router;

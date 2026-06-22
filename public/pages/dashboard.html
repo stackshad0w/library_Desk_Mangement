@@ -190,6 +190,21 @@
         <div class="form-card" style="margin-top:24px;">
           <div class="form-section" style="margin-bottom:0;">
             <div class="form-section-title">
+              <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3zM5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z"/></svg>
+              Courses
+            </div>
+            <p style="font-size:13px; color:var(--text3); margin-bottom:16px;">The course options shown on the admission form.</p>
+            <div id="courses-list" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px;"></div>
+            <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end;">
+              <div class="form-group" style="flex:1; min-width:160px;"><label>Add a course</label><input type="text" id="new-course" placeholder="e.g. NEET"></div>
+              <button class="btn btn-primary" onclick="window.SwamiAbhyasika.addCourse()" style="height:42px;">Add Course</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-card" style="margin-top:24px;">
+          <div class="form-section" style="margin-bottom:0;">
+            <div class="form-section-title">
               <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M4 18v3h3v-3h10v3h3v-6H4zm15-8h3v3h-3zM2 10h3v3H2zm15 3H7V5c0-1.1.9-2 2-2h6c1.1 0 2 .9 2 2z"/></svg>
               Library Layout (Seat Map)
             </div>
@@ -250,6 +265,7 @@
             <div class="table-filters">
               <select class="filter-sel" id="filter-course"><option value="">All Courses</option></select>
               <select class="filter-sel" id="filter-status"><option value="">All Status</option><option value="Paid">Active</option><option value="Pending">Pending</option><option value="Overdue">Overdue</option><option value="Inactive">Inactive</option></select>
+              <button class="btn btn-ghost" id="toggle-archived-btn" onclick="window.SwamiAbhyasika.toggleArchived()">Show Archived</button>
             </div>
           </div>
           <div style="overflow-x:auto">
@@ -314,6 +330,7 @@
             <table><thead><tr><th>Student</th><th>Course</th><th>Subscription</th><th>Balance</th><th>Progress</th><th>Due Date</th><th>Status</th><th>Action</th></tr></thead>
             <tbody id="fee-table"></tbody></table>
           </div>
+          <div class="pagination" id="fee-pagination"></div>
         </div>
       </div>
 
