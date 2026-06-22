@@ -1,5 +1,5 @@
 import { api } from './api.js';
-import { formatCurrency, getInitials, getColor, statusBadgeClass } from '../utils/helpers.js';
+import { formatCurrency, getInitials, getColor, statusBadgeClass, escapeHtml } from '../utils/helpers.js';
 import { showToast } from '../utils/toast.js';
 
 let feeChart = null, courseChart = null;
@@ -29,11 +29,11 @@ function renderRecentTable(recent) {
   }
   tbody.innerHTML = recent.map((s, i) => `<tr onclick="window.SwamiAbhyasika.showStudentDetails('${s.id}')" style="cursor:pointer">
     <td><div class="student-cell">
-      <div class="avatar" style="background:${getColor(i)}20;color:${getColor(i)}">${getInitials(s.name)}</div>
-      <div><div class="student-name">${s.name}</div><div class="student-id">${s.id}</div></div>
+      <div class="avatar" style="background:${getColor(i)}20;color:${getColor(i)}">${escapeHtml(getInitials(s.name))}</div>
+      <div><div class="student-name">${escapeHtml(s.name)}</div><div class="student-id">${escapeHtml(s.id)}</div></div>
     </div></td>
-    <td>${s.course}</td>
-    <td style="color:var(--text2)">${s.admission_date}</td>
+    <td>${escapeHtml(s.course)}</td>
+    <td style="color:var(--text2)">${escapeHtml(s.admission_date)}</td>
     <td><span class="status-pill ${statusBadgeClass(s.fee_status)}">${s.fee_status}</span></td>
   </tr>`).join('');
 }

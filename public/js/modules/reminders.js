@@ -1,6 +1,6 @@
 import { api } from './api.js';
 import { showToast } from '../utils/toast.js';
-import { formatCurrency } from '../utils/helpers.js';
+import { formatCurrency, escapeHtml } from '../utils/helpers.js';
 import { sendReminderWA } from './whatsapp.js';
 
 let currentReminders = [];
@@ -31,9 +31,9 @@ export async function renderReminders() {
           <svg width="20" height="20" fill="${color}" viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4a2 2 0 002 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4a1.5 1.5 0 00-3 0v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
         </div>
         <div style="flex:1">
-          <div style="font-weight:500">${s.name} <span style="color:var(--text3);font-size:12px">${s.id}</span></div>
+          <div style="font-weight:500">${escapeHtml(s.name)} <span style="color:var(--text3);font-size:12px">${escapeHtml(s.id)}</span></div>
           <div style="font-size:12px;color:var(--text3)">${msg}</div>
-          <div style="font-size:11px;color:var(--text3)">${s.phone} · ${s.course}</div>
+          <div style="font-size:11px;color:var(--text3)">${escapeHtml(s.phone)} · ${escapeHtml(s.course)}</div>
         </div>
         <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
           <span class="status-pill" style="background:${bg};color:${color}">${isOverdue ? 'Overdue' : 'Due Soon'}</span>
@@ -67,8 +67,8 @@ export function openBulkReminder() {
   listEl.innerHTML = currentReminders.map((s, i) => `
     <div class="bulk-row" id="bulk-row-${i}" style="display:flex;align-items:center;gap:10px;padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius-sm)">
       <div style="flex:1;min-width:0">
-        <div style="font-size:13px;font-weight:500">${s.name}</div>
-        <div style="font-size:11px;color:var(--text3)">${s.phone} · ${s.course || ''}</div>
+        <div style="font-size:13px;font-weight:500">${escapeHtml(s.name)}</div>
+        <div style="font-size:11px;color:var(--text3)">${escapeHtml(s.phone)} · ${escapeHtml(s.course || '')}</div>
       </div>
       <span id="bulk-status-${i}" style="font-size:11px;color:var(--text3);flex-shrink:0">Queued</span>
     </div>`).join('');

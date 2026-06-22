@@ -1,6 +1,6 @@
 import { api } from './api.js';
 import { showToast } from '../utils/toast.js';
-import { formatCurrency, getInitials, getColor, statusBadgeClass, debounce, getSubscriptionBalance } from '../utils/helpers.js';
+import { formatCurrency, getInitials, getColor, statusBadgeClass, debounce, getSubscriptionBalance, escapeHtml } from '../utils/helpers.js';
 import { ITEMS_PER_PAGE, COURSES } from '../utils/constants.js';
 import { validateRequired, validatePhone, validateEmail, validatePositiveNumber, showFieldError, clearAllErrors } from '../utils/validation.js';
 
@@ -65,11 +65,11 @@ export async function renderStudentTable() {
       const statusLabel = s.fee_status === 'Paid' ? 'Active' : s.fee_status;
       return `<tr onclick="window.SwamiAbhyasika.showStudentDetails('${s.id}')" style="cursor:pointer">
         <td><div class="student-cell">
-          <div class="avatar" style="background:${getColor(i)}20;color:${getColor(i)}">${getInitials(s.name)}</div>
-          <div><div class="student-name">${s.name}</div><div class="student-id">${s.id}</div></div>
+          <div class="avatar" style="background:${getColor(i)}20;color:${getColor(i)}">${escapeHtml(getInitials(s.name))}</div>
+          <div><div class="student-name">${escapeHtml(s.name)}</div><div class="student-id">${escapeHtml(s.id)}</div></div>
         </div></td>
-        <td style="color:var(--text2)">${s.phone}</td>
-        <td><span class="status-pill badge-purple">${s.course}</span></td>
+        <td style="color:var(--text2)">${escapeHtml(s.phone)}</td>
+        <td><span class="status-pill badge-purple">${escapeHtml(s.course)}</span></td>
         <td>${formatCurrency(s.total_fees)}</td>
         <td><span class="status-pill ${statusBadgeClass(s.fee_status)}">${statusLabel}</span></td>
         <td><div class="action-btns">
@@ -288,9 +288,9 @@ export async function showStudentDetails(id) {
     const content = document.getElementById('student-details-content');
     const { balance, pct } = getSubscriptionBalance(s);
     
-    let avatarHtml = `<div class="avatar" style="width:64px;height:64px;font-size:24px;background:var(--accent-bg);color:var(--accent)">${getInitials(s.name)}</div>`;
-    if (s.photo) {
-      avatarHtml = `<img src="${s.photo}" style="width:64px;height:64px;border-radius:50%;object-fit:cover;" />`;
+    let avatarHtml = `<div class="avatar" style="width:64px;height:64px;font-size:24px;background:var(--accent-bg);color:var(--accent)">${escapeHtml(getInitials(s.name))}</div>`;
+    if (s.photo && String(s.photo).startsWith('data:image/')) {
+      avatarHtml = `<img src="${encodeURI(s.photo)}" style="width:64px;height:64px;border-radius:50%;object-fit:cover;" />`;
     }
 
     content.innerHTML = `
@@ -298,8 +298,8 @@ export async function showStudentDetails(id) {
         <div style="display:flex; align-items:center; gap:16px;">
           ${avatarHtml}
           <div>
-            <h3 style="margin:0;font-size:18px;">${s.name}</h3>
-            <p style="margin:2px 0;color:var(--text2)">${s.id}</p>
+            <h3 style="margin:0;font-size:18px;">${escapeHtml(s.name)}</h3>
+            <p style="margin:2px 0;color:var(--text2)">${escapeHtml(s.id)}</p>
             <span class="status-pill ${statusBadgeClass(s.fee_status)}">${s.fee_status}</span>
           </div>
         </div>
@@ -314,12 +314,12 @@ export async function showStudentDetails(id) {
       <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
         <div><strong>Gender:</strong> ${s.gender || 'Male'}</div>
         <div><strong>Study Shift:</strong> <span class="status-pill badge-purple">${s.shift || 'Day'}</span></div>
-        <div><strong>Course:</strong> ${s.course}</div>
-        <div><strong>Phone:</strong> ${s.phone}</div>
-        <div><strong>Email:</strong> ${s.email || 'N/A'}</div>
-        <div><strong>Admission Date:</strong> ${s.admission_date}</div>
-        <div><strong>Conditions:</strong> ${s.conditions || s.parent_name || 'N/A'}</div>
-        <div><strong>Address:</strong> ${s.address || 'N/A'}</div>
+        <div><strong>Course:</strong> ${escapeHtml(s.course)}</div>
+        <div><strong>Phone:</strong> ${escapeHtml(s.phone)}</div>
+        <div><strong>Email:</strong> ${escapeHtml(s.email || 'N/A')}</div>
+        <div><strong>Admission Date:</strong> ${escapeHtml(s.admission_date)}</div>
+        <div><strong>Conditions:</strong> ${escapeHtml(s.conditions || s.parent_name || 'N/A')}</div>
+        <div><strong>Address:</strong> ${escapeHtml(s.address || 'N/A')}</div>
         <div><strong>Total Fees:</strong> ${formatCurrency(s.total_fees)}</div>
         <div><strong>Total Paid:</strong> ${formatCurrency(s.paid_fees)}</div>
         <div><strong>Pending:</strong> <span style="color:${balance > 0 ? 'var(--amber)' : 'var(--green)'}">${formatCurrency(balance)}</span></div>
@@ -342,10 +342,10 @@ export async function showStudentDetails(id) {
               <tbody>
                 ${s.payments.map(p => `
                   <tr style="border-bottom:1px solid var(--border);">
-                    <td style="padding:8px 4px;">${p.payment_date || p.date}</td>
+                    <td style="padding:8px 4px;">${escapeHtml(p.payment_date || p.date)}</td>
                     <td style="padding:8px 4px;color:var(--green);font-weight:500;">${formatCurrency(p.amount)}</td>
-                    <td style="padding:8px 4px;">${p.payment_method || p.method}</td>
-                    <td style="padding:8px 4px;color:var(--text3);">${p.notes || '-'}</td>
+                    <td style="padding:8px 4px;">${escapeHtml(p.payment_method || p.method)}</td>
+                    <td style="padding:8px 4px;color:var(--text3);">${escapeHtml(p.notes || '-')}</td>
                   </tr>
                 `).join('')}
               </tbody>

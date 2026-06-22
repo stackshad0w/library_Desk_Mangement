@@ -1,16 +1,13 @@
 const { v4: uuidv4 } = require('uuid');
 
 /**
- * Sanitize a string to prevent XSS
+ * Normalize a stored string. We store raw text (queries are parameterized, so
+ * there is no SQL-injection risk) and rely on HTML-escaping at render time to
+ * prevent XSS — escaping here too would double-encode values like "O'Brien".
  */
 function sanitize(str) {
   if (typeof str !== 'string') return str;
-  return str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#x27;');
+  return str.trim();
 }
 
 /**

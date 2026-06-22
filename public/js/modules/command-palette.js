@@ -94,7 +94,7 @@ function render(q, students, loading) {
       }
       const pending = Math.max(0, Number(s.total_fees || 0) - Number(s.paid_fees || 0));
       return `<div class="cmd-item" data-idx="${idx}">
-        <div class="cmd-item-icon" style="background:var(--accent-bg);color:var(--accent2);font-size:13px;">${getInitials(s.name || '?')}</div>
+        <div class="cmd-item-icon" style="background:var(--accent-bg);color:var(--accent2);font-size:13px;">${escapeHtml(getInitials(s.name || '?'))}</div>
         <div class="cmd-item-main">
           <div class="cmd-item-title" style="display:flex;align-items:center;gap:6px;">${hl(s.name)}<span class="cmd-id">${hl(s.id)}</span></div>
           <div class="cmd-item-sub">${hl(s.phone)} · ${hl(s.course || '')}</div>

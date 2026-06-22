@@ -1,6 +1,6 @@
 import { api } from './api.js';
 import { showToast } from '../utils/toast.js';
-import { formatCurrency, getInitials, getColor, statusBadgeClass, getSubscriptionBalance } from '../utils/helpers.js';
+import { formatCurrency, getInitials, getColor, statusBadgeClass, getSubscriptionBalance, escapeHtml } from '../utils/helpers.js';
 import { PAYMENT_METHODS } from '../utils/constants.js';
 import { getFeeForMonths } from './settings.js';
 import { sendReceiptWA } from './whatsapp.js';
@@ -34,10 +34,10 @@ export async function renderFeeTable() {
       const barColor = s.fee_status === 'Paid' ? 'var(--green)' : s.fee_status === 'Overdue' ? 'var(--red)' : 'var(--amber)';
       return `<tr>
         <td><div class="student-cell">
-          <div class="avatar" style="background:${getColor(i)}20;color:${getColor(i)}">${getInitials(s.name)}</div>
-          <div><div class="student-name">${s.name}</div><div class="student-id">${s.id}</div></div>
+          <div class="avatar" style="background:${getColor(i)}20;color:${getColor(i)}">${escapeHtml(getInitials(s.name))}</div>
+          <div><div class="student-name">${escapeHtml(s.name)}</div><div class="student-id">${escapeHtml(s.id)}</div></div>
         </div></td>
-        <td style="font-size:12px;color:var(--text2)">${s.course}</td>
+        <td style="font-size:12px;color:var(--text2)">${escapeHtml(s.course)}</td>
         <td>${formatCurrency(s.total_fees)}</td>
         <td style="color:${balance > 0 ? 'var(--amber)' : 'var(--green)'}">${formatCurrency(balance)}</td>
         <td style="min-width:100px"><div class="progress-bar"><div class="progress-fill" style="width:${usagePct}%;background:${barColor}"></div></div><div style="font-size:11px;color:var(--text3);margin-top:3px">${usagePct}% used</div></td>
@@ -57,7 +57,7 @@ export async function openPaymentModal(id) {
     const s = await api.get(`/students/${id}`);
     const { balance } = getSubscriptionBalance(s);
     document.getElementById('payment-student-info').innerHTML =
-      `<strong>${s.name}</strong> (${s.id}) · ${s.course}<br>Total Fees: ${formatCurrency(s.total_fees)} · <span style="color:${balance > 0 ? 'var(--amber)' : 'var(--green)'}">Pending: ${formatCurrency(balance)}</span>`;
+      `<strong>${escapeHtml(s.name)}</strong> (${escapeHtml(s.id)}) · ${escapeHtml(s.course)}<br>Total Fees: ${formatCurrency(s.total_fees)} · <span style="color:${balance > 0 ? 'var(--amber)' : 'var(--green)'}">Pending: ${formatCurrency(balance)}</span>`;
     document.getElementById('pay-amount').value = '';
     const periodFeeEl = document.getElementById('pay-period-fee');
     if (periodFeeEl) periodFeeEl.value = '';
@@ -152,15 +152,15 @@ function generateReceipt(r) {
       <div class="receipt-header">
         <div><div class="receipt-logo">Swami Abhyasika</div><div class="receipt-title">Fee Receipt</div></div>
         <div style="text-align:right;font-size:12px;color:var(--text3)">
-          <div style="font-weight:600;color:var(--text)">${r.receiptNumber}</div>
-          <div>${r.date}</div>
+          <div style="font-weight:600;color:var(--text)">${escapeHtml(r.receiptNumber)}</div>
+          <div>${escapeHtml(r.date)}</div>
         </div>
       </div>
-      <div class="receipt-row"><span style="color:var(--text3)">Student Name</span><span>${r.studentName}</span></div>
-      <div class="receipt-row"><span style="color:var(--text3)">Student ID</span><span>${r.studentId}</span></div>
-      <div class="receipt-row"><span style="color:var(--text3)">Course</span><span>${r.course}</span></div>
-      <div class="receipt-row"><span style="color:var(--text3)">Payment Method</span><span>${r.method}</span></div>
-      ${r.notes ? `<div class="receipt-row"><span style="color:var(--text3)">Notes</span><span>${r.notes}</span></div>` : ''}
+      <div class="receipt-row"><span style="color:var(--text3)">Student Name</span><span>${escapeHtml(r.studentName)}</span></div>
+      <div class="receipt-row"><span style="color:var(--text3)">Student ID</span><span>${escapeHtml(r.studentId)}</span></div>
+      <div class="receipt-row"><span style="color:var(--text3)">Course</span><span>${escapeHtml(r.course)}</span></div>
+      <div class="receipt-row"><span style="color:var(--text3)">Payment Method</span><span>${escapeHtml(r.method)}</span></div>
+      ${r.notes ? `<div class="receipt-row"><span style="color:var(--text3)">Notes</span><span>${escapeHtml(r.notes)}</span></div>` : ''}
       <div class="receipt-row"><span style="color:var(--text3)">Amount Paid</span><span style="color:var(--green)">${formatCurrency(r.amount)}</span></div>
       <div class="receipt-row"><span style="color:var(--text3)">Total Paid So Far</span><span>${formatCurrency(r.totalPaid)}</span></div>
       <div class="receipt-row total"><span>Remaining Balance</span><span>${formatCurrency(r.remaining)}</span></div>
