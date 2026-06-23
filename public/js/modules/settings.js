@@ -115,10 +115,10 @@ export async function setTheme(themeName) {
 
   try {
     await api.put('/settings', { key: 'theme', value: themeName });
-    showToast(`Theme switched to ${themeName}`, 'green');
+    showToast(`Default theme set to "${themeName}"`, 'green');
   } catch (err) {
     console.warn('Could not save remote theme setting, using local preference.', err);
-    showToast('Theme saved locally', 'green');
+    showToast('Default theme saved on this device', 'green');
   }
 }
 
@@ -139,6 +139,12 @@ function highlightActiveTheme(themeName) {
     const isActive = opt.dataset.theme === activeTheme;
     opt.style.borderColor = isActive ? 'var(--accent)' : 'var(--border)';
     opt.style.background = isActive ? 'var(--bg3)' : 'transparent';
+    const status = opt.querySelector('.theme-status');
+    if (status) {
+      status.textContent = isActive ? '✓ Current default' : 'Set as default';
+      status.style.color = isActive ? 'var(--accent2)' : 'var(--text3)';
+      status.style.fontWeight = isActive ? '700' : '500';
+    }
   });
 }
 
@@ -148,9 +154,10 @@ export function renderThemeOptions(themes = DEFAULT_THEMES) {
 
   const saved = localStorage.getItem(SELECTED_THEME_KEY) || 'default';
   container.innerHTML = themes.map(t => `
-    <div class="theme-option" data-theme="${t.id}" onclick="window.SwamiAbhyasika.setTheme('${t.id}')" style="cursor:pointer; border:2px solid var(--border); border-radius:var(--radius); padding:12px; text-align:center; transition: all 0.2s;">
+    <div class="theme-option" data-theme="${t.id}" onclick="window.SwamiAbhyasika.setTheme('${t.id}')" title="Click to use this theme and make it the default" style="cursor:pointer; border:2px solid var(--border); border-radius:var(--radius); padding:12px; text-align:center; transition: all 0.2s;">
       <div style="width:100%; height:60px; background:${t.bg}; border-radius:var(--radius-sm); margin-bottom:8px; border:1px solid rgba(128,128,128,0.25)"></div>
       <div style="font-size:13px; font-weight:600;">${t.label}</div>
+      <div class="theme-status" style="font-size:11px; margin-top:6px;">Set as default</div>
     </div>
   `).join('');
   highlightActiveTheme(saved);
