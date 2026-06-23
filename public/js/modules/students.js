@@ -144,7 +144,11 @@ function renderPagination(pagination) {
 export function goToPage(page) { currentPage = page; renderStudentTable(); }
 export function setFilter(type, value) {
   if (type === 'course') currentCourse = value;
-  if (type === 'status') currentStatus = value;
+  if (type === 'status') {
+    // "Archived" is a view (removed students), the rest are live fee statuses.
+    if (value === 'archived') { showArchived = true; currentStatus = ''; }
+    else { showArchived = false; currentStatus = value; }
+  }
   currentPage = 1;
   renderStudentTable();
 }
@@ -154,18 +158,6 @@ export function setSearch(value) {
   renderStudentTable();
 }
 export const debouncedSearch = debounce(setSearch, 300);
-
-export function toggleArchived() {
-  showArchived = !showArchived;
-  currentPage = 1;
-  const btn = document.getElementById('toggle-archived-btn');
-  if (btn) {
-    btn.textContent = showArchived ? 'Show Active' : 'Show Archived';
-    btn.classList.toggle('btn-primary', showArchived);
-    btn.classList.toggle('btn-ghost', !showArchived);
-  }
-  renderStudentTable();
-}
 
 export async function restoreStudent(id) {
   try {
