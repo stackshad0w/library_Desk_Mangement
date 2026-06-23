@@ -47,17 +47,17 @@ function renderCharts(data) {
   const css = getComputedStyle(document.body);
   const tickColor = css.getPropertyValue('--text2').trim() || '#8b90a0';
   const gridColor = css.getPropertyValue('--border2').trim() || 'rgba(128,128,128,0.15)';
-  const accent = css.getPropertyValue('--accent').trim() || '#6c63ff';
+  const accent = css.getPropertyValue('--accent').trim() || '#1a73e8';
 
   const feeCtx = document.getElementById('feeChart')?.getContext('2d');
   if (feeCtx) {
     const feeLabels = ['Collected', 'Pending'];
     const feeValues = [data.feesCollected, data.feesPending];
-    const feeColors = ['#22c55e', '#f59e0b'];
+    const feeColors = ['#34a853', '#fbbc05'];
     if (data.feesOverdue > 0) {
       feeLabels.push('Overdue');
       feeValues.push(data.feesOverdue);
-      feeColors.push('#ef4444');
+      feeColors.push('#ea4335');
     }
 
     feeChart = new Chart(feeCtx, {
