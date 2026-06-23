@@ -33,6 +33,23 @@
 .month-chips .chip:hover { border-color: var(--accent); color: var(--text); }
 .month-chips .chip.active { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
 
+/* ========== "+ New" MENU ========== */
+.new-menu { position: relative; }
+.new-menu-list {
+  position: absolute; right: 0; top: calc(100% + 6px); min-width: 210px;
+  background: var(--bg2); border: 1px solid var(--border2); border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-lg); padding: 6px; display: none; z-index: 60;
+}
+.new-menu.open .new-menu-list { display: block; }
+.new-menu-list button {
+  display: flex; align-items: center; gap: 10px; width: 100%; text-align: left;
+  background: none; border: none; color: var(--text); padding: 9px 10px;
+  border-radius: 6px; cursor: pointer; font-size: 13px; font-family: 'DM Sans', sans-serif;
+}
+.new-menu-list button:hover { background: var(--bg3); }
+.new-menu-list svg { width: 15px; height: 15px; color: var(--text3); flex-shrink: 0; }
+.new-menu-list button:hover svg { color: var(--accent2); }
+
 /* ========== SIDEBAR ========== */
 .sidebar { width: var(--sidebar-w); background: var(--bg2); border-right: 1px solid var(--border); display: flex; flex-direction: column; position: fixed; top: 0; left: 0; height: 100vh; z-index: 100; transition: transform 0.3s ease; }
 .sidebar-logo { padding: 24px 20px; border-bottom: 1px solid var(--border); }

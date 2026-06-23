@@ -17,7 +17,7 @@ exports.getSettings = (req, res) => {
   }
 };
 
-const ALLOWED_SETTINGS_KEYS = ['fee_tiers', 'theme', 'seat_config', 'courses'];
+const ALLOWED_SETTINGS_KEYS = ['fee_tiers', 'theme', 'seat_config', 'courses', 'message_templates'];
 
 exports.updateSetting = (req, res) => {
   const { key, value } = req.body;
@@ -56,6 +56,21 @@ exports.updateSetting = (req, res) => {
       }
       if (tier.shift && !validShifts.includes(tier.shift)) {
         return res.status(400).json({ message: `Invalid shift in tier: ${tier.shift}` });
+      }
+    }
+  }
+
+  // Validate message templates (object of strings)
+  if (key === 'message_templates') {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) {
+      return res.status(400).json({ message: 'message_templates must be an object' });
+    }
+    for (const k of Object.keys(value)) {
+      if (typeof value[k] !== 'string') {
+        return res.status(400).json({ message: `Template "${k}" must be text` });
+      }
+      if (value[k].length > 4000) {
+        return res.status(400).json({ message: `Template "${k}" is too long` });
       }
     }
   }

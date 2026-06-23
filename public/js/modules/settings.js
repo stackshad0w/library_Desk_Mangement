@@ -17,6 +17,61 @@ const DEFAULT_FEE_TIERS = [{ gender: 'Male', shift: 'Day', months: 1, fee: 1000 
 const DEFAULT_COURSES = ['UPSC MPSC', 'IIT JEE/MHT CET', 'MEDICAL', 'OTHER'];
 let courseList = DEFAULT_COURSES.slice();
 
+const DEFAULT_TEMPLATES = {
+  reminder_overdue:
+`🙏 Namaste *{name}*!
+
+This is a gentle reminder from *Swami Abhyasika*.
+
+🗓 Subscription valid till: *{dueDate}*
+⚠️ Your membership has *expired*. Please renew at the earliest.
+
+💰 *Pending Fees: {pending}*
+Kindly clear your dues to continue using our facilities.
+
+Thank you 🙏
+*Swami Abhyasika — Center for Learning*`,
+  reminder_due:
+`🙏 Namaste *{name}*!
+
+This is a gentle reminder from *Swami Abhyasika*.
+
+🗓 Subscription valid till: *{dueDate}*
+⏳ Your membership is expiring in *{days} day(s)*.
+
+💰 *Pending Fees: {pending}*
+Please renew to avoid any interruption in services.
+
+Thank you 🙏
+*Swami Abhyasika — Center for Learning*`,
+  receipt:
+`🙏 Namaste *{name}*!
+
+🧾 *Fee Receipt — Swami Abhyasika*
+━━━━━━━━━━━━━━━━━━
+Receipt No: *{receiptNumber}*
+Date: *{date}*
+Course: *{course}*
+Payment Method: *{method}*
+Amount Paid: *{amount}*
+Valid Until: *{dueDate}*
+━━━━━━━━━━━━━━━━━━
+Thank you for your payment! 🙏
+*Swami Abhyasika — Center For Learning*`,
+};
+const TEMPLATE_FIELDS = [
+  { key: 'reminder_overdue', label: 'Reminder — Overdue / expired', hint: '{name} {dueDate} {fromDate} {pending} {days} {course}' },
+  { key: 'reminder_due', label: 'Reminder — Due soon', hint: '{name} {dueDate} {fromDate} {pending} {days} {course}' },
+  { key: 'receipt', label: 'Payment Receipt', hint: '{name} {receiptNumber} {date} {amount} {method} {course} {fromDate} {dueDate}' },
+];
+let templates = { ...DEFAULT_TEMPLATES };
+
+/** Used by whatsapp.js to build messages. */
+export function getTemplates() { return templates; }
+export function fillTemplate(tpl, vars) {
+  return String(tpl || '').replace(/\{(\w+)\}/g, (_, k) => (vars[k] !== undefined && vars[k] !== null ? String(vars[k]) : ''));
+}
+
 function loadFeeTiersFromStorage() {
   try {
     const settings = JSON.parse(localStorage.getItem(LOCAL_SETTINGS_KEY) || '{}');
@@ -118,6 +173,9 @@ export async function renderSettings() {
     if (Array.isArray(settings.courses) && settings.courses.length) {
       courseList = settings.courses;
     }
+    if (settings.message_templates && typeof settings.message_templates === 'object') {
+      templates = { ...DEFAULT_TEMPLATES, ...settings.message_templates };
+    }
 
     const savedTheme = localStorage.getItem(SELECTED_THEME_KEY) || settings.theme || 'default';
     localStorage.setItem(SELECTED_THEME_KEY, savedTheme);
@@ -130,6 +188,7 @@ export async function renderSettings() {
   loadSeatConfig();
   renderCourses();
   populateCourseSelect();
+  renderTemplates();
 
   // Admin-only sections (staff accounts, backup/restore).
   const isAdmin = (api.getUser()?.role === 'admin');
@@ -451,6 +510,39 @@ async function saveCourses() {
   populateCourseSelect();
 }
 
+/* ---------- WhatsApp message templates ---------- */
+function renderTemplates() {
+  const wrap = document.getElementById('templates-list');
+  if (!wrap) return;
+  wrap.innerHTML = TEMPLATE_FIELDS.map(f => `
+    <div class="form-group" style="margin-bottom:18px;">
+      <label>${f.label}</label>
+      <textarea id="tpl-${f.key}" rows="8" style="font-family:inherit; line-height:1.5;">${escapeAttr(templates[f.key] || '')}</textarea>
+      <div style="font-size:11px; color:var(--text3); margin-top:5px;">Placeholders: <code style="color:var(--accent2)">${f.hint}</code></div>
+    </div>`).join('');
+}
+
+export async function saveTemplates() {
+  const next = {};
+  for (const f of TEMPLATE_FIELDS) {
+    const el = document.getElementById('tpl-' + f.key);
+    next[f.key] = el ? el.value : (templates[f.key] || '');
+  }
+  templates = next;
+  try {
+    await api.put('/settings', { key: 'message_templates', value: next });
+    showToast('Message templates saved', 'green');
+  } catch (err) {
+    showToast(err.data?.message || err.message || 'Failed to save templates', 'red');
+  }
+}
+
+export function resetTemplates() {
+  templates = { ...DEFAULT_TEMPLATES };
+  renderTemplates();
+  showToast('Defaults loaded — click Save to apply', 'amber');
+}
+
 export async function initSettings() {
   renderThemeOptions(DEFAULT_THEMES);
   const savedTheme = localStorage.getItem(SELECTED_THEME_KEY) || 'default';
@@ -465,6 +557,9 @@ export async function initSettings() {
     }
     if (Array.isArray(settings.courses) && settings.courses.length) {
       courseList = settings.courses;
+    }
+    if (settings.message_templates && typeof settings.message_templates === 'object') {
+      templates = { ...DEFAULT_TEMPLATES, ...settings.message_templates };
     }
     populateCourseSelect();
 

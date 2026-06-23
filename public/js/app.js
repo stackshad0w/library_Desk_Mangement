@@ -5,7 +5,7 @@ import { renderFeeTable, openPaymentModal, closeModal, savePayment, calcNextDueD
 import { customConfirm, closeConfirm } from './utils/helpers.js';
 import { renderReminders, sendReminderWhatsApp, openBulkReminder, startBulkSend, closeBulkModal } from './modules/reminders.js';
 import { exportCSV, exportExcel, exportPDF } from './modules/export.js';
-import { renderSettings, addFeeTier, removeFeeTier, initSettings, getFeeForMonths, setTheme, toggleTheme as toggleThemeSettings, addFloor, removeFloor, updateFloorField, saveSeatConfig, downloadBackup, triggerRestore, restoreBackup, renderUsers, addUser, changeUserRole, setUserActive, deleteUser, addCourse, removeCourse, populateCourseSelect } from './modules/settings.js';
+import { renderSettings, addFeeTier, removeFeeTier, initSettings, getFeeForMonths, setTheme, toggleTheme as toggleThemeSettings, addFloor, removeFloor, updateFloorField, saveSeatConfig, downloadBackup, triggerRestore, restoreBackup, renderUsers, addUser, changeUserRole, setUserActive, deleteUser, addCourse, removeCourse, populateCourseSelect, saveTemplates, resetTemplates } from './modules/settings.js';
 import { initToast, showToast } from './utils/toast.js';
 import { initTheme, toggleTheme as toggleThemeUtil } from './utils/theme.js';
 import { initCommandPalette, openCommandPalette, closeCommandPalette } from './modules/command-palette.js';
@@ -55,6 +55,26 @@ function showPage(id) {
   if (id === 'admission-form') populateCourseSelect();
 }
 
+// "+ New" dropdown menu in the top bar.
+function toggleNewMenu(e) {
+  if (e) e.stopPropagation();
+  document.getElementById('new-menu')?.classList.toggle('open');
+}
+function newAction(kind) {
+  document.getElementById('new-menu')?.classList.remove('open');
+  if (kind === 'student') {
+    resetForm();
+    window.SwamiAbhyasika._editingId = null;
+    showPage('admission-form');
+  } else if (kind === 'payment') {
+    showPage('fees');
+  } else if (kind === 'seat') {
+    showPage('seats');
+  }
+}
+// Close the menu when clicking anywhere else.
+document.addEventListener('click', () => document.getElementById('new-menu')?.classList.remove('open'));
+
 // Jump from the Library Seats page to the layout editor in Settings.
 function editSeatLayout() {
   showPage('settings');
@@ -84,6 +104,8 @@ if (searchInput) {
 window.SwamiAbhyasika = {
   showPage,
   editSeatLayout,
+  toggleNewMenu,
+  newAction,
   submitAdmission,
   resetForm,
   calcRemaining,
@@ -122,6 +144,8 @@ window.SwamiAbhyasika = {
   deleteUser,
   addCourse,
   removeCourse,
+  saveTemplates,
+  resetTemplates,
   setTheme,
   toggleTheme: toggleThemeUtil,
   autoUpdateAdmissionFee,
